@@ -9,6 +9,8 @@
 /* #define CMD_SEND 0x04 */
 #define CMD_SEND 0x34
 
+#define BAUDRATE 9600
+
 void setup() {
   // put your setup code here, to run once:
 
@@ -16,7 +18,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   // start serial port at 9600 bps:
-  Serial.begin(9600);
+  Serial.begin(BAUDRATE);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
