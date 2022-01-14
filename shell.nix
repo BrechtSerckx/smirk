@@ -1,6 +1,7 @@
 { }:
 let pkgs = import ./pkgs.nix;
-in pkgs.mkShell {
+in pkgs.haskellPackages.shellFor {
+  packages = p: [ p.smirk-server ];
   buildInputs = with pkgs; [
     # nix
     niv
@@ -9,6 +10,11 @@ in pkgs.mkShell {
     arduino-mk
     arduino-core-unwrapped
     picocom
+    # haskell
+    haskellPackages.cabal-install
+    haskellPackages.brittany
+    haskellPackages.ghcid
+    haskellPackages.hlint
   ];
   shellHook = with pkgs; ''
     cat > arduino/Base.mk << EOF
