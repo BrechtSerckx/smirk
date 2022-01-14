@@ -8,13 +8,13 @@ if [ ${1-} = "-d" ]; then
     if [ -n $2 ]; then
         DIR=$2
         shift
+        ln -sf "${PWD}/Makefile" "${DIR}/Makefile"
     else
         echo "ERROR: no project directory given"
     fi
 else
-    echo "Using './arduino' as project directory"
-    DIR="${PWD}/arduino"
+    echo "Using 'PROJECT/arduino' as project directory"
+    DIR="${PWD}"
 fi
-ln -sf "${PWD}/Makefile" "${DIR}/Makefile"
 echo "Building ${DIR}"
 ( cd "${DIR}" && make "$@" )
