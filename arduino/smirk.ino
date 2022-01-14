@@ -11,7 +11,19 @@
 /* #define CMD_READ 0x05 */
 #define CMD_READ 0x35
 
+/*
+ * SERIAL
+ */
+
 #define BAUDRATE 9600
+
+void setupSerial() {
+  // start serial port at 9600 bps:
+  Serial.begin(BAUDRATE);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }
+}
 
 /*
  * RECEIVER
@@ -46,11 +58,9 @@ void setup() {
 
   setupReceiver();
 
-  // start serial port at 9600 bps:
-  Serial.begin(BAUDRATE);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
+  setupSerial();
+
+
 }
 
 void loop() {
