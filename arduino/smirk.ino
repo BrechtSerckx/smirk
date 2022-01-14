@@ -6,9 +6,14 @@
 #define CMD_VERSION 0x32
 /* #define CMD_ADD 0x03 */
 #define CMD_ADD 0x33
+/* #define CMD_SEND 0x04 */
+#define CMD_SEND 0x34
 
 void setup() {
   // put your setup code here, to run once:
+
+  // initialize LED
+  pinMode(LED_BUILTIN, OUTPUT);
 
   // start serial port at 9600 bps:
   Serial.begin(9600);
@@ -47,6 +52,11 @@ void loop() {
           }
         }
         break;
+      case CMD_SEND:
+        {
+          digitalWrite(LED_BUILTIN, HIGH);
+          delay(100);
+          digitalWrite(LED_BUILTIN, LOW);
         }
         break;
       default:
