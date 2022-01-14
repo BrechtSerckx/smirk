@@ -23,20 +23,30 @@ void loop() {
     byte cmd = Serial.read();
     switch (cmd) {
       case CMD_NULL:
+        {}
         break;
       case CMD_PING:
-        Serial.write(CMD_PING);
-        Serial.print("\r\n");
+        {
+          Serial.write(CMD_PING);
+          Serial.print("\r\n");
+        }
         break;
       case CMD_VERSION:
-        Serial.println("dev");
+        {
+          Serial.println("dev");
+        }
         break;
       case CMD_ADD:
-        long int n = Serial.parseInt();
-        if ( n == 0 ) {
-          Serial.println("Error: ADD command did not receive a number > 0");
-        } else {
-          Serial.println(n);
+        {
+          long int n = Serial.parseInt();
+          if ( n == 0 ) {
+            Serial.println("Error: ADD command did not receive a number > 0");
+          } else {
+            n++;
+            Serial.println(n);
+          }
+        }
+        break;
         }
         break;
       default:
