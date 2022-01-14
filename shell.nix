@@ -9,7 +9,7 @@ pkgs.mkShell {
     picocom
   ];
   shellHook = with pkgs; ''
-    cat > Base.mk << EOF
+    cat > arduino/Base.mk << EOF
     ARDUINO_DIR = ${arduino-core-unwrapped}/share/arduino
     MONITOR_CMD = picocom
     include ${arduino-mk}/Arduino.mk
