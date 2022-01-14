@@ -26,6 +26,20 @@ void setupSerial() {
 }
 
 /*
+ * SENDER
+ */
+
+void setupSender() {
+  pinMode(LED_BUILTIN, OUTPUT);
+}
+
+void send() {
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(100);
+  digitalWrite(LED_BUILTIN, LOW);
+}
+
+/*
  * RECEIVER
  */
 
@@ -52,15 +66,9 @@ void setupReceiver() {
 
 void setup() {
   // put your setup code here, to run once:
-
-  // initialize LED
-  pinMode(LED_BUILTIN, OUTPUT);
-
+  setupSender();
   setupReceiver();
-
   setupSerial();
-
-
 }
 
 void loop() {
@@ -94,11 +102,7 @@ void loop() {
         }
         break;
       case CMD_SEND:
-        {
-          digitalWrite(LED_BUILTIN, HIGH);
-          delay(100);
-          digitalWrite(LED_BUILTIN, LOW);
-        }
+        send();
         break;
       case CMD_READ:
         {
