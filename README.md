@@ -66,3 +66,19 @@ Links:
   - [ ] [R470 >60mW](https://nl.rs-online.com/web/p/products/1251133/)
 - Future parts:
   - [ ] [IRLB8721PbF](https://www.adafruit.com/product/355)
+
+### How to use the Arduino Leonardo
+
+```
+./build.sh DIRECTORY COMMAND
+
+DIRECTORY project directory containing arduino source files
+COMMAND   `Arduino-Makefile` command
+```
+
+- `build`: Builds the project
+- `upload`: Uploads the project to the Arduino
+- `monitor`: Opens `picocom` as terminal for the serial monitor
+   Press `C-a C-x` to exit the `picocom` command.
+   After resetting, wait for the `RX` LED to flash before opening the monitor.
+
