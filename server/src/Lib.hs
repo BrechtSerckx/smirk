@@ -2,7 +2,7 @@ module Lib
   ( main
   ) where
 
-import           Control.Concurrent             ( threadDelay )
+import           Control.Monad
 import qualified Data.ByteString.Char8         as BS
 import           Options.Applicative
 import qualified System.Hardware.Serialport    as Serial
@@ -14,9 +14,43 @@ pSerialPortSettings = do
       "Serial timeout in 1/10th seconds"
   pure Serial.defaultSerialSettings { Serial.timeout = timeout }
 
+data ControlCmd
+  = NoOp
+  | Ping
+  | Version
+  | Add Int
+  | Send
+  | Receive
+
+pControlCmd :: Parser ControlCmd
+pControlCmd = hsubparser $ mconcat
+  [ command "no-op" $ pure NoOp `info` (fullDesc <> progDesc "Do nothing.")
+  , command "ping" $ pure Ping `info` (fullDesc <> progDesc "Ping pong.")
+  , command "version"
+  $      pure Version
+  `info` (fullDesc <> progDesc "Show Smirk Arduino version.")
+  , command "add"
+  $      (Add <$> argument auto mempty)
+  `info` (fullDesc <> progDesc "Add a number on the Smirk Arduino.")
+  , command "send" $ pure Send `info` (fullDesc <> progDesc "Send a code.")
+  , command "receive"
+  $      pure Receive
+  `info` (fullDesc <> progDesc "Get the last received code .")
+  ]
+
+data Cmd = Control ControlCmd
+
+pCmd :: Parser Cmd
+pCmd = hsubparser $ mconcat
+  [ command "control"
+    $      (Control <$> pControlCmd)
+    `info` (fullDesc <> progDesc "Control the Smirk Arduino.")
+  ]
+
 data Opts = Opts
   { serialPortSettings :: Serial.SerialPortSettings
   , serialPortPath     :: FilePath
+  , cmd                :: Cmd
   }
 
 pOpts :: Parser Opts
@@ -24,11 +58,12 @@ pOpts = do
   serialPortSettings <- pSerialPortSettings
   serialPortPath     <-
     strOption $ long "port" <> short 'p' <> value "/dev/ttyACM0" <> showDefault
+  cmd <- pCmd
   pure Opts { .. }
 
 parseOpts :: IO Opts
 parseOpts =
-  let parserInfo = fullDesc <> progDesc "Smirk controller and server"
+  let parserInfo = fullDesc <> progDesc "Smirk controller and server."
   in  execParser $ (pOpts <**> helper) `info` parserInfo
 
 main :: IO ()
@@ -38,37 +73,31 @@ main = do
 
   serial <- Serial.openSerial serialPortPath serialPortSettings
 
-  putStrLn "No-op"
-  Serial.send serial "0"
-  threadDelay 1000000
+  case cmd of
+    Control controlCmd -> case controlCmd of
+      NoOp -> void $ Serial.send serial "0"
 
-  putStrLn "Ping"
-  Serial.send serial "1"
-  res <- Serial.recv serial 10
-  BS.putStrLn res
-  threadDelay 1000000
+      Ping -> do
+        Serial.send serial "1"
+        res <- Serial.recv serial 10
+        BS.putStrLn res
 
-  putStrLn "Version"
-  Serial.send serial "2"
-  res <- Serial.recv serial 10
-  BS.putStrLn res
-  threadDelay 1000000
+      Version -> do
+        Serial.send serial "2"
+        res <- Serial.recv serial 10
+        BS.putStrLn res
 
-  putStrLn "Add to 42"
-  Serial.send serial "342"
-  res <- Serial.recv serial 1000
-  BS.putStrLn res
-  threadDelay 1000000
+      Add i -> do
+        Serial.send serial $ "3" <> BS.pack (show i)
+        res <- Serial.recv serial 10
+        BS.putStrLn res
 
-  putStrLn "Send"
-  Serial.send serial "4"
-  threadDelay 1000000
+      Send    -> void $ Serial.send serial "4"
 
-  putStrLn "Receive"
-  Serial.send serial "5"
-  res <- Serial.recv serial 10
-  BS.putStrLn res
-  threadDelay 1000000
+      Receive -> do
+        Serial.send serial "5"
+        res <- Serial.recv serial 10
+        BS.putStrLn res
 
   Serial.closeSerial serial
 
