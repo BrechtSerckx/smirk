@@ -1,16 +1,3 @@
-/* #define CMD_NULL 0x00 */
-#define CMD_NULL 0x30
-/* #define CMD_PING 0x01 */
-#define CMD_PING 0x31
-/* #define CMD_VERSION 0x02 */
-#define CMD_VERSION 0x32
-/* #define CMD_ADD 0x03 */
-#define CMD_ADD 0x33
-/* #define CMD_SEND 0x04 */
-#define CMD_SEND 0x34
-/* #define CMD_READ 0x05 */
-#define CMD_READ 0x35
-
 /*
  * SERIAL
  */
@@ -26,8 +13,57 @@ void setupSerial() {
 }
 
 /*
+ * NOOP
+ */
+
+/* #define CMD_NULL 0x00 */
+#define CMD_NULL 0x30
+void noop() {}
+
+/*
+ * PING
+ */
+
+/* #define CMD_PING 0x01 */
+#define CMD_PING 0x31
+void pong() {
+  Serial.write(CMD_PING);
+  Serial.print("\r\n");
+}
+
+/*
+ * VERSION
+ */
+
+/* #define CMD_VERSION 0x02 */
+#define CMD_VERSION 0x32
+#define VERSION "dev"
+void version() {
+  Serial.println(VERSION);
+}
+
+/*
+ * ADD
+ */
+
+/* #define CMD_ADD 0x03 */
+#define CMD_ADD 0x33
+void add() {
+  long int n = Serial.parseInt();
+  if ( n == 0 ) {
+    Serial.println("Error: ADD command did not receive a number > 0");
+  } else {
+    n++;
+    Serial.println(n);
+  }
+}
+
+/*
  * SENDER
  */
+
+/* #define CMD_SEND 0x04 */
+#define CMD_SEND 0x34
 
 void setupSender() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -42,6 +78,9 @@ void send() {
 /*
  * RECEIVER
  */
+
+/* #define CMD_RECEIVE 0x05 */
+#define CMD_RECEIVE 0x35
 
 #define RECEIVER_PIN 2
 unsigned short receiveCount = 0;
@@ -60,8 +99,12 @@ void setupReceiver() {
   attachInterrupt(digitalPinToInterrupt(RECEIVER_PIN), receiverInterrupt, RISING);
 }
 
+void receive() {
+  Serial.println(receiveCount);
+}
+
 /*
- * 
+ *  MAIN
  */
 
 void setup() {
@@ -77,37 +120,22 @@ void loop() {
     byte cmd = Serial.read();
     switch (cmd) {
       case CMD_NULL:
-        {}
+        noop();
         break;
       case CMD_PING:
-        {
-          Serial.write(CMD_PING);
-          Serial.print("\r\n");
-        }
+        pong();
         break;
       case CMD_VERSION:
-        {
-          Serial.println("dev");
-        }
+        version();
         break;
       case CMD_ADD:
-        {
-          long int n = Serial.parseInt();
-          if ( n == 0 ) {
-            Serial.println("Error: ADD command did not receive a number > 0");
-          } else {
-            n++;
-            Serial.println(n);
-          }
-        }
+        add();
         break;
       case CMD_SEND:
         send();
         break;
-      case CMD_READ:
-        {
-          Serial.println(receiveCount);
-        }
+      case CMD_RECEIVE:
+        receive();
         break;
       default:
         Serial.print("Error: unrecognized command: ");
