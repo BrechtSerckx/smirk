@@ -8,14 +8,43 @@
 #define CMD_ADD 0x33
 /* #define CMD_SEND 0x04 */
 #define CMD_SEND 0x34
+/* #define CMD_READ 0x05 */
+#define CMD_READ 0x35
 
 #define BAUDRATE 9600
+
+/*
+ * RECEIVER
+ */
+
+#define RECEIVER_PIN 2
+unsigned short receiveCount = 0;
+unsigned long lastReceiverInterrupt = 0;
+
+void receiverInterrupt() {
+  unsigned long currentTime = millis();
+  if (currentTime - lastReceiverInterrupt > 400) {
+    receiveCount++;
+    lastReceiverInterrupt = currentTime;
+  }
+}
+
+void setupReceiver() {
+  pinMode(RECEIVER_PIN, INPUT);
+  attachInterrupt(digitalPinToInterrupt(RECEIVER_PIN), receiverInterrupt, RISING);
+}
+
+/*
+ * 
+ */
 
 void setup() {
   // put your setup code here, to run once:
 
   // initialize LED
   pinMode(LED_BUILTIN, OUTPUT);
+
+  setupReceiver();
 
   // start serial port at 9600 bps:
   Serial.begin(BAUDRATE);
@@ -59,6 +88,11 @@ void loop() {
           digitalWrite(LED_BUILTIN, HIGH);
           delay(100);
           digitalWrite(LED_BUILTIN, LOW);
+        }
+        break;
+      case CMD_READ:
+        {
+          Serial.println(receiveCount);
         }
         break;
       default:
