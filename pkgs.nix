@@ -9,6 +9,7 @@ let
         super.nix-gitignore.gitignoreSourcePure [ (path + /.gitignore) ] path;
       overrides = selfh: superh: {
         smirk-server = superh.callCabal2nix "smirk-server" (gitignore ./server) { };
+        serialport = hlib.dontCheck (superh.callHackage "serialport" "0.5.1" {});
       };
     in {
       haskellPackages = super.haskellPackages.override (old: {

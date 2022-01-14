@@ -64,6 +64,7 @@ executable smirk-server
   build-depends:
       base >=4.7 && <5
     , smirk-server
+    , serialport
 
 test-suite smirk-server-test
   import: common-default-extensions
