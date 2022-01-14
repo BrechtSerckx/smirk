@@ -1,2 +1,4 @@
 /.direnv/
 /Base.mk
+build-leonardo/
+Makefile
