@@ -1,9 +1,11 @@
-let sources = import ./nix/sources.nix;
-in { pkgs ? import sources.nixpkgs { } }:
-pkgs.mkShell {
+{ }:
+let pkgs = import ./pkgs.nix;
+in pkgs.mkShell {
   buildInputs = with pkgs; [
-    sources.niv
+    # nix
+    niv
     nixfmt
+    # arduino
     arduino-mk
     arduino-core-unwrapped
     picocom
