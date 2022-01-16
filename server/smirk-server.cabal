@@ -55,6 +55,7 @@ library
     , bytestring
     , serialport
     , optparse-applicative
+    , resourcet
 
 executable smirk-server
   main-is:             Main.hs

@@ -3,6 +3,9 @@ module Lib
   ) where
 
 import           Control.Monad
+import           Data.Acquire                   ( mkAcquire
+                                                , withAcquire
+                                                )
 import qualified Data.ByteString.Char8         as BS
 import           Options.Applicative
 import qualified System.Hardware.Serialport    as Serial
@@ -71,9 +74,10 @@ main = do
   Opts {..} <- parseOpts
   putStrLn "Hello World!"
 
-  serialPort <- Serial.openSerial serialPortPath serialPortSettings
-
-  case cmd of
+  let acquireSerialPort = mkAcquire
+        (Serial.openSerial serialPortPath serialPortSettings)
+        Serial.closeSerial
+  withAcquire acquireSerialPort $ \serialPort -> case cmd of
     Control controlCmd -> case controlCmd of
       NoOp -> void $ Serial.send serialPort "0"
 
@@ -98,7 +102,5 @@ main = do
         Serial.send serialPort "5"
         res <- Serial.recv serialPort 10
         BS.putStrLn res
-
-  Serial.closeSerial serialPort
 
   putStrLn "Goodbye World!"
