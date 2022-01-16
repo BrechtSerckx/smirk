@@ -56,6 +56,9 @@ library
     , serialport
     , optparse-applicative
     , resourcet
+    , capability
+    , mtl
+    , transformers
     , concurrent-extra
 
 executable smirk-server
