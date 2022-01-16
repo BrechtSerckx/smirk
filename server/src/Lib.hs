@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE UndecidableInstances #-}
 module Lib
   ( main
   ) where
@@ -77,34 +78,26 @@ parseOpts =
   let parserInfo = fullDesc <> progDesc "Smirk controller and server."
   in  execParser $ (pOpts <**> helper) `info` parserInfo
 
-withSerialPort
-  :: ( HasReader "serialPort" Serial.SerialPort m
-     , HasReader "serialPortLock" Lock m
-     , MonadIO m
-     )
-  => (Serial.SerialPort -> IO a)
-  -> m a
-withSerialPort f = do
-  lock <- ask @"serialPortLock"
-  s    <- ask @"serialPort"
-  liftIO . Lock.with lock $ f s
+class Monad m => HasSerialPort m where
+  withSerialPort :: (Serial.SerialPort -> IO a) -> m a
 
-serialSend
-  :: ( HasReader "serialPort" Serial.SerialPort m
-     , HasReader "serialPortLock" Lock m
-     , MonadIO m
-     )
-  => BS.ByteString
-  -> m ()
+newtype SerialPortT m a = SerialPortT (m a)
+  deriving (Functor, Applicative, Monad) via m
+instance
+  ( Monad m
+  , MonadIO m
+  , HasReader "serialPort" Serial.SerialPort m
+  , HasReader "serialPortLock" Lock m
+  ) => HasSerialPort (SerialPortT m) where
+  withSerialPort f = SerialPortT $ do
+    lock <- ask @"serialPortLock"
+    s    <- ask @"serialPort"
+    liftIO . Lock.with lock $ f s
+
+serialSend :: HasSerialPort m => BS.ByteString -> m ()
 serialSend bs = void . withSerialPort $ \s -> Serial.send s bs
 
-serialSendRecv
-  :: ( HasReader "serialPort" Serial.SerialPort m
-     , HasReader "serialPortLock" Lock m
-     , MonadIO m
-     )
-  => BS.ByteString
-  -> m BS.ByteString
+serialSendRecv :: HasSerialPort m => BS.ByteString -> m BS.ByteString
 serialSendRecv bs = withSerialPort $ \s -> do
   void $ Serial.send s bs
   Serial.recv s 10
@@ -125,6 +118,9 @@ newtype M a = M { runM :: Ctx -> IO a }
            , HasSource "serialPortLock" Lock
            )
     via Field "serialPortLock" "ctx" (MonadReader (ReaderT Ctx IO))
+  deriving HasSerialPort
+  via SerialPortT M
+
 
 main :: IO ()
 main = do
