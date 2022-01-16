@@ -157,8 +157,6 @@ cmdReceive = BS.singleton 0x05
 main :: IO ()
 main = do
   Opts {..} <- parseOpts
-  putStrLn "Hello World!"
-
   let acquireSerialPort = mkAcquire
         (Serial.openSerial serialPortPath serialPortSettings)
         Serial.closeSerial
@@ -175,5 +173,3 @@ main = do
           Send    -> expecting resOk $ serialSendRecv cmdSend
           Receive -> serialSendRecv cmdReceive
         liftIO $ BS8.putStrLn res
-
-  putStrLn "Goodbye World!"
