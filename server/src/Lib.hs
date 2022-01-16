@@ -94,9 +94,6 @@ instance
     s    <- ask @"serialPort"
     liftIO . Lock.with lock $ f s
 
-serialSend :: HasSerialPort m => BS.ByteString -> m ()
-serialSend bs = void . withSerialPort $ \s -> Serial.send s bs
-
 serialSendRecv :: HasSerialPort m => BS.ByteString -> m BS.ByteString
 serialSendRecv bs = withSerialPort $ \s -> do
   void $ Serial.send s bs
@@ -134,25 +131,14 @@ main = do
     serialPortLock <- Lock.new
     let ctx = Ctx { .. }
     flip runM ctx $ case cmd of
-      Control controlCmd -> case controlCmd of
-        NoOp -> serialSend "0"
-
-        Ping -> do
-          res <- serialSendRecv "1"
-          liftIO $ BS.putStrLn res
-
-        Version -> do
-          res <- serialSendRecv "2"
-          liftIO $ BS.putStrLn res
-
-        Add i -> do
-          res <- serialSendRecv $ "3" <> BS.pack (show i)
-          liftIO $ BS.putStrLn res
-
-        Send    -> serialSend "4"
-
-        Receive -> do
-          res <- serialSendRecv "5"
-          liftIO $ BS.putStrLn res
+      Control controlCmd -> do
+        res <- case controlCmd of
+          NoOp    -> serialSendRecv "0"
+          Ping    -> serialSendRecv "1"
+          Version -> serialSendRecv "2"
+          Add i   -> serialSendRecv $ "3" <> BS.pack (show i)
+          Send    -> serialSendRecv "4"
+          Receive -> serialSendRecv "5"
+        liftIO $ BS.putStrLn res
 
   putStrLn "Goodbye World!"

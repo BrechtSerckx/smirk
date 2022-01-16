@@ -13,12 +13,21 @@ void setupSerial() {
 }
 
 /*
+ * OK
+ */
+
+/* #define RES_OK 0x00 */
+#define RES_OK 0x30
+
+/*
  * NOOP
  */
 
 /* #define CMD_NULL 0x00 */
 #define CMD_NULL 0x30
-void noop() {}
+void noop() {
+  Serial.print(RES_OK);
+}
 
 /*
  * PING
@@ -28,7 +37,6 @@ void noop() {}
 #define CMD_PING 0x31
 void pong() {
   Serial.write(CMD_PING);
-  Serial.print("\r\n");
 }
 
 /*
@@ -39,7 +47,7 @@ void pong() {
 #define CMD_VERSION 0x32
 #define VERSION "dev"
 void version() {
-  Serial.println(VERSION);
+  Serial.print(VERSION);
 }
 
 /*
@@ -51,10 +59,10 @@ void version() {
 void add() {
   long int n = Serial.parseInt();
   if ( n == 0 ) {
-    Serial.println("Error: ADD command did not receive a number > 0");
+    Serial.print("Error: ADD command did not receive a number > 0");
   } else {
     n++;
-    Serial.println(n);
+    Serial.print(n);
   }
 }
 
@@ -73,6 +81,7 @@ void send() {
   digitalWrite(LED_BUILTIN, HIGH);
   delay(100);
   digitalWrite(LED_BUILTIN, LOW);
+  Serial.print(RES_OK);
 }
 
 /*
