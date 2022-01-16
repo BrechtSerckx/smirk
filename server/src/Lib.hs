@@ -1,7 +1,10 @@
+{-# LANGUAGE DataKinds #-}
 module Lib
   ( main
   ) where
 
+import           Capability.Reader
+import           Capability.Source
 import           Control.Concurrent.Lock        ( Lock )
 import qualified Control.Concurrent.Lock       as Lock
 import           Control.Monad
@@ -11,6 +14,7 @@ import           Data.Acquire                   ( mkAcquire
                                                 , withAcquire
                                                 )
 import qualified Data.ByteString.Char8         as BS
+import           GHC.Generics                   ( Generic )
 import           Options.Applicative
 import qualified System.Hardware.Serialport    as Serial
 
@@ -74,19 +78,34 @@ parseOpts =
   in  execParser $ (pOpts <**> helper) `info` parserInfo
 
 withSerialPort
-  :: MonadIO m
-  => Serial.SerialPort
-  -> Lock
-  -> (Serial.SerialPort -> IO a)
+  :: ( HasReader "serialPort" Serial.SerialPort m
+     , HasReader "serialPortLock" Lock m
+     , MonadIO m
+     )
+  => (Serial.SerialPort -> IO a)
   -> m a
-withSerialPort s lock f = liftIO . Lock.with lock $ f s
+withSerialPort f = do
+  lock <- ask @"serialPortLock"
+  s    <- ask @"serialPort"
+  liftIO . Lock.with lock $ f s
 
-serialSend :: MonadIO m => Serial.SerialPort -> Lock -> BS.ByteString -> m ()
-serialSend s' l bs = void . withSerialPort s' l $ \s -> Serial.send s bs
+serialSend
+  :: ( HasReader "serialPort" Serial.SerialPort m
+     , HasReader "serialPortLock" Lock m
+     , MonadIO m
+     )
+  => BS.ByteString
+  -> m ()
+serialSend bs = void . withSerialPort $ \s -> Serial.send s bs
 
 serialSendRecv
-  :: MonadIO m => Serial.SerialPort -> Lock -> BS.ByteString -> m BS.ByteString
-serialSendRecv s' l bs = withSerialPort s' l $ \s -> do
+  :: ( HasReader "serialPort" Serial.SerialPort m
+     , HasReader "serialPortLock" Lock m
+     , MonadIO m
+     )
+  => BS.ByteString
+  -> m BS.ByteString
+serialSendRecv bs = withSerialPort $ \s -> do
   void $ Serial.send s bs
   Serial.recv s 10
 
@@ -98,6 +117,15 @@ data Ctx = Ctx
 
 newtype M a = M { runM :: Ctx -> IO a }
   deriving (Functor, Applicative, Monad, MonadIO) via ReaderT Ctx IO
+  deriving ( HasReader "serialPort" Serial.SerialPort
+           , HasSource "serialPort" Serial.SerialPort
+           )
+    via Field "serialPort" "ctx" (MonadReader (ReaderT Ctx IO))
+  deriving ( HasReader "serialPortLock" Lock
+           , HasSource "serialPortLock" Lock
+           )
+    via Field "serialPortLock" "ctx" (MonadReader (ReaderT Ctx IO))
+
 main :: IO ()
 main = do
   Opts {..} <- parseOpts
@@ -111,25 +139,24 @@ main = do
     let ctx = Ctx { .. }
     flip runM ctx $ case cmd of
       Control controlCmd -> case controlCmd of
-        NoOp -> serialSend serialPort serialPortLock "0"
+        NoOp -> serialSend "0"
 
         Ping -> do
-          res <- serialSendRecv serialPort serialPortLock "1"
+          res <- serialSendRecv "1"
           liftIO $ BS.putStrLn res
 
         Version -> do
-          res <- serialSendRecv serialPort serialPortLock "2"
+          res <- serialSendRecv "2"
           liftIO $ BS.putStrLn res
 
         Add i -> do
-          res <- serialSendRecv serialPort serialPortLock $ "3" <> BS.pack
-            (show i)
+          res <- serialSendRecv $ "3" <> BS.pack (show i)
           liftIO $ BS.putStrLn res
 
-        Send    -> serialSend serialPort serialPortLock "4"
+        Send    -> serialSend "4"
 
         Receive -> do
-          res <- serialSendRecv serialPort serialPortLock "5"
+          res <- serialSendRecv "5"
           liftIO $ BS.putStrLn res
 
   putStrLn "Goodbye World!"
