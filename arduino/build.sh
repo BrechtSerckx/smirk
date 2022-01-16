@@ -7,7 +7,7 @@ set -eu -o pipefail
 if [ ${1-} = "-d" ]; then
     if [ -n $2 ]; then
         DIR=$2
-        shift
+        shift; shift
         ln -sf "${PWD}/Makefile" "${DIR}/Makefile"
     else
         echo "ERROR: no project directory given"
