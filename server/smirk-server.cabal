@@ -56,6 +56,7 @@ library
     , serialport
     , optparse-applicative
     , resourcet
+    , concurrent-extra
 
 executable smirk-server
   main-is:             Main.hs

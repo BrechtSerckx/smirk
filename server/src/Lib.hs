@@ -2,6 +2,8 @@ module Lib
   ( main
   ) where
 
+import           Control.Concurrent.Lock        ( Lock )
+import qualified Control.Concurrent.Lock       as Lock
 import           Control.Monad
 import           Data.Acquire                   ( mkAcquire
                                                 , withAcquire
@@ -69,14 +71,16 @@ parseOpts =
   let parserInfo = fullDesc <> progDesc "Smirk controller and server."
   in  execParser $ (pOpts <**> helper) `info` parserInfo
 
-withSerialPort :: Serial.SerialPort -> (Serial.SerialPort -> IO a) -> IO a
-withSerialPort s f = f s
+withSerialPort
+  :: Serial.SerialPort -> Lock -> (Serial.SerialPort -> IO a) -> IO a
+withSerialPort s lock f = Lock.with lock $ f s
 
-serialSend :: Serial.SerialPort -> BS.ByteString -> IO ()
-serialSend s' bs = void . withSerialPort s' $ \s -> Serial.send s bs
+serialSend :: Serial.SerialPort -> Lock -> BS.ByteString -> IO ()
+serialSend s' l bs = void . withSerialPort s' l $ \s -> Serial.send s bs
 
-serialSendRecv :: Serial.SerialPort -> BS.ByteString -> IO BS.ByteString
-serialSendRecv s' bs = withSerialPort s' $ \s -> do
+serialSendRecv
+  :: Serial.SerialPort -> Lock -> BS.ByteString -> IO BS.ByteString
+serialSendRecv s' l bs = withSerialPort s' l $ \s -> do
   void $ Serial.send s bs
   Serial.recv s 10
 
@@ -88,26 +92,28 @@ main = do
   let acquireSerialPort = mkAcquire
         (Serial.openSerial serialPortPath serialPortSettings)
         Serial.closeSerial
+  serialPortLock <- Lock.new
   withAcquire acquireSerialPort $ \serialPort -> case cmd of
     Control controlCmd -> case controlCmd of
-      NoOp -> serialSend serialPort "0"
+      NoOp -> serialSend serialPort serialPortLock "0"
 
       Ping -> do
-        res <- serialSendRecv serialPort "1"
+        res <- serialSendRecv serialPort serialPortLock "1"
         BS.putStrLn res
 
       Version -> do
-        res <- serialSendRecv serialPort "2"
+        res <- serialSendRecv serialPort serialPortLock "2"
         BS.putStrLn res
 
       Add i -> do
-        res <- serialSendRecv serialPort $ "3" <> BS.pack (show i)
+        res <- serialSendRecv serialPort serialPortLock $ "3" <> BS.pack
+          (show i)
         BS.putStrLn res
 
-      Send    -> serialSend serialPort "4"
+      Send    -> serialSend serialPort serialPortLock "4"
 
       Receive -> do
-        res <- serialSendRecv serialPort "5"
+        res <- serialSendRecv serialPort serialPortLock "5"
         BS.putStrLn res
 
   putStrLn "Goodbye World!"
