@@ -69,6 +69,17 @@ parseOpts =
   let parserInfo = fullDesc <> progDesc "Smirk controller and server."
   in  execParser $ (pOpts <**> helper) `info` parserInfo
 
+withSerialPort :: Serial.SerialPort -> (Serial.SerialPort -> IO a) -> IO a
+withSerialPort s f = f s
+
+serialSend :: Serial.SerialPort -> BS.ByteString -> IO ()
+serialSend s' bs = void . withSerialPort s' $ \s -> Serial.send s bs
+
+serialSendRecv :: Serial.SerialPort -> BS.ByteString -> IO BS.ByteString
+serialSendRecv s' bs = withSerialPort s' $ \s -> do
+  void $ Serial.send s bs
+  Serial.recv s 10
+
 main :: IO ()
 main = do
   Opts {..} <- parseOpts
@@ -79,28 +90,24 @@ main = do
         Serial.closeSerial
   withAcquire acquireSerialPort $ \serialPort -> case cmd of
     Control controlCmd -> case controlCmd of
-      NoOp -> void $ Serial.send serialPort "0"
+      NoOp -> serialSend serialPort "0"
 
       Ping -> do
-        Serial.send serialPort "1"
-        res <- Serial.recv serialPort 10
+        res <- serialSendRecv serialPort "1"
         BS.putStrLn res
 
       Version -> do
-        Serial.send serialPort "2"
-        res <- Serial.recv serialPort 10
+        res <- serialSendRecv serialPort "2"
         BS.putStrLn res
 
       Add i -> do
-        Serial.send serialPort $ "3" <> BS.pack (show i)
-        res <- Serial.recv serialPort 10
+        res <- serialSendRecv serialPort $ "3" <> BS.pack (show i)
         BS.putStrLn res
 
-      Send    -> void $ Serial.send serialPort "4"
+      Send    -> serialSend serialPort "4"
 
       Receive -> do
-        Serial.send serialPort "5"
-        res <- Serial.recv serialPort 10
+        res <- serialSendRecv serialPort "5"
         BS.putStrLn res
 
   putStrLn "Goodbye World!"
