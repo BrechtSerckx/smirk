@@ -16,25 +16,22 @@ void setupSerial() {
  * OK
  */
 
-/* #define RES_OK 0x00 */
-#define RES_OK 0x30
+#define RES_OK byte(0x00)
 
 /*
  * NOOP
  */
 
-/* #define CMD_NULL 0x00 */
-#define CMD_NULL 0x30
+#define CMD_NULL 0x00
 void noop() {
-  Serial.print(RES_OK);
+  Serial.write(RES_OK);
 }
 
 /*
  * PING
  */
 
-/* #define CMD_PING 0x01 */
-#define CMD_PING 0x31
+#define CMD_PING 0x01
 void pong() {
   Serial.write(CMD_PING);
 }
@@ -43,19 +40,17 @@ void pong() {
  * VERSION
  */
 
-/* #define CMD_VERSION 0x02 */
-#define CMD_VERSION 0x32
+#define CMD_VERSION 0x02
 #define VERSION "dev"
 void version() {
-  Serial.print(VERSION);
+  Serial.write(VERSION);
 }
 
 /*
  * ADD
  */
 
-/* #define CMD_ADD 0x03 */
-#define CMD_ADD 0x33
+#define CMD_ADD 0x03
 void add() {
   long int n = Serial.parseInt();
   if ( n == 0 ) {
@@ -70,8 +65,7 @@ void add() {
  * SENDER
  */
 
-/* #define CMD_SEND 0x04 */
-#define CMD_SEND 0x34
+#define CMD_SEND 0x04
 
 void setupSender() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -81,15 +75,14 @@ void send() {
   digitalWrite(LED_BUILTIN, HIGH);
   delay(100);
   digitalWrite(LED_BUILTIN, LOW);
-  Serial.print(RES_OK);
+  Serial.write(RES_OK);
 }
 
 /*
  * RECEIVER
  */
 
-/* #define CMD_RECEIVE 0x05 */
-#define CMD_RECEIVE 0x35
+#define CMD_RECEIVE 0x05
 
 #define RECEIVER_PIN 2
 unsigned short receiveCount = 0;
@@ -109,7 +102,7 @@ void setupReceiver() {
 }
 
 void receive() {
-  Serial.println(receiveCount);
+  Serial.print(receiveCount);
 }
 
 /*
@@ -148,7 +141,7 @@ void loop() {
         break;
       default:
         Serial.print("Error: unrecognized command: ");
-        Serial.println(cmd,HEX);
+        Serial.print(cmd, HEX);
     }
   }
 }
