@@ -71,34 +71,34 @@ main = do
   Opts {..} <- parseOpts
   putStrLn "Hello World!"
 
-  serial <- Serial.openSerial serialPortPath serialPortSettings
+  serialPort <- Serial.openSerial serialPortPath serialPortSettings
 
   case cmd of
     Control controlCmd -> case controlCmd of
-      NoOp -> void $ Serial.send serial "0"
+      NoOp -> void $ Serial.send serialPort "0"
 
       Ping -> do
-        Serial.send serial "1"
-        res <- Serial.recv serial 10
+        Serial.send serialPort "1"
+        res <- Serial.recv serialPort 10
         BS.putStrLn res
 
       Version -> do
-        Serial.send serial "2"
-        res <- Serial.recv serial 10
+        Serial.send serialPort "2"
+        res <- Serial.recv serialPort 10
         BS.putStrLn res
 
       Add i -> do
-        Serial.send serial $ "3" <> BS.pack (show i)
-        res <- Serial.recv serial 10
+        Serial.send serialPort $ "3" <> BS.pack (show i)
+        res <- Serial.recv serialPort 10
         BS.putStrLn res
 
-      Send    -> void $ Serial.send serial "4"
+      Send    -> void $ Serial.send serialPort "4"
 
       Receive -> do
-        Serial.send serial "5"
-        res <- Serial.recv serial 10
+        Serial.send serialPort "5"
+        res <- Serial.recv serialPort 10
         BS.putStrLn res
 
-  Serial.closeSerial serial
+  Serial.closeSerial serialPort
 
   putStrLn "Goodbye World!"
