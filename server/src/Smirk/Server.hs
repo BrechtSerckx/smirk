@@ -4,14 +4,11 @@ module Smirk.Server
   ) where
 
 import           Control.Monad.IO.Class         ( MonadIO(..) )
-import           Data.Acquire                   ( Acquire
-                                                , withAcquire
-                                                )
+import           Data.Acquire                   ( withAcquire )
 import           Data.Proxy                     ( Proxy(..) )
 import qualified Network.Wai.Handler.Warp      as Warp
 import           Servant.API
 import qualified Servant.Server                as Servant
-import qualified System.Hardware.Serialport    as Serial
 
 import           Smirk.M
 
@@ -23,18 +20,14 @@ pSmirkApi = Proxy
 smirkServer :: Servant.ServerT SmirkApi m
 smirkServer = Servant.emptyServer
 
-mToHandler
-  :: Acquire Serial.SerialPort
-  -> (Serial.SerialPort -> Ctx)
-  -> forall a . M a -> Servant.Handler a
-mToHandler acquireSerialPort mkCtx act =
+mToHandler :: MkCtx -> forall a . M a -> Servant.Handler a
+mToHandler (acquireSerialPort, mkCtx) act =
   liftIO . withAcquire acquireSerialPort $ \serialPort ->
     act `runM` mkCtx serialPort
 
-runSmirkServer
-  :: Acquire Serial.SerialPort -> (Serial.SerialPort -> Ctx) -> IO ()
-runSmirkServer acquireSerialPort mkCtx =
-  Warp.run 8765
+runSmirkServer :: Warp.Settings -> MkCtx -> IO ()
+runSmirkServer warpSettings mkCtx =
+  Warp.runSettings warpSettings
     . Servant.serve pSmirkApi
-    . Servant.hoistServer pSmirkApi (mToHandler acquireSerialPort mkCtx)
+    . Servant.hoistServer pSmirkApi (mToHandler mkCtx)
     $ smirkServer

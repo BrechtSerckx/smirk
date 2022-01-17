@@ -30,6 +30,6 @@ main = do
       flip runM ctx $ do
         res <- runControlCmd controlCmd
         liftIO $ BS8.putStrLn res
-    Serve ->
+    Serve warpSettings ->
       let mkCtx serialPort = Ctx { .. }
-      in  runSmirkServer acquireSerialPort mkCtx
+      in  runSmirkServer warpSettings (acquireSerialPort, mkCtx)

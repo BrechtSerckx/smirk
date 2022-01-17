@@ -6,6 +6,9 @@ module Smirk.Opts
   , module Export
   ) where
 
+import qualified Network.Wai.Handler.Warp      as Warp
+import qualified Network.Wai.Handler.Warp.Internal
+                                               as Warp
 import           Options.Applicative
 import           System.Hardware.Serialport    as Export
                                                 ( SerialPortSettings(..)
@@ -37,9 +40,20 @@ pControlCmd = hsubparser $ mconcat
   `info` (fullDesc <> progDesc "Get the last received code .")
   ]
 
+pWarpSettings :: Parser Warp.Settings
+pWarpSettings = do
+  port <-
+    option auto
+    $  long "port"
+    <> short 'p'
+    <> help "Webserver port"
+    <> showDefault
+    <> value 8765
+  pure Warp.defaultSettings { Warp.settingsPort = port }
+
 data Cmd
   = Control ControlCmd
-  | Serve
+  | Serve Warp.Settings
 
 pCmd :: Parser Cmd
 pCmd = hsubparser $ mconcat
@@ -47,7 +61,7 @@ pCmd = hsubparser $ mconcat
   $      (Control <$> pControlCmd)
   `info` (fullDesc <> progDesc "Control the Smirk Arduino.")
   , command "serve"
-  $      (pure Serve)
+  $      (Serve <$> pWarpSettings)
   `info` (fullDesc <> progDesc "Serve a webserver for the Smirk Arduino.")
   ]
 

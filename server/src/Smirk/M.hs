@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 module Smirk.M
   ( Ctx(..)
+  , MkCtx
   , M(..)
   ) where
 
@@ -12,6 +13,7 @@ import           Capability.Source              ( HasSource )
 import           Control.Concurrent.Lock        ( Lock )
 import           Control.Monad.IO.Class         ( MonadIO )
 import           Control.Monad.Trans.Reader     ( ReaderT(..) )
+import           Data.Acquire                   ( Acquire )
 import           GHC.Generics                   ( Generic )
 import qualified System.Hardware.Serialport    as Serial
 
@@ -22,6 +24,7 @@ data Ctx = Ctx
   , serialPortLock :: Lock
   }
   deriving stock Generic
+type MkCtx = (Acquire Serial.SerialPort, Serial.SerialPort -> Ctx)
 
 newtype M a = M { runM :: Ctx -> IO a }
   deriving (Functor, Applicative, Monad, MonadIO) via ReaderT Ctx IO
