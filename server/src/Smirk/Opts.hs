@@ -37,13 +37,18 @@ pControlCmd = hsubparser $ mconcat
   `info` (fullDesc <> progDesc "Get the last received code .")
   ]
 
-data Cmd = Control ControlCmd
+data Cmd
+  = Control ControlCmd
+  | Serve
 
 pCmd :: Parser Cmd
 pCmd = hsubparser $ mconcat
   [ command "control"
-    $      (Control <$> pControlCmd)
-    `info` (fullDesc <> progDesc "Control the Smirk Arduino.")
+  $      (Control <$> pControlCmd)
+  `info` (fullDesc <> progDesc "Control the Smirk Arduino.")
+  , command "serve"
+  $      (pure Serve)
+  `info` (fullDesc <> progDesc "Serve a webserver for the Smirk Arduino.")
   ]
 
 data Opts = Opts

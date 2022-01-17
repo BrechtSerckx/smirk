@@ -54,6 +54,7 @@ library
     Smirk.Effects.SerialPort
     Smirk.M
     Smirk.Opts
+    Smirk.Server
   build-depends:
       base >=4.7 && <5
     , bytestring
@@ -64,6 +65,10 @@ library
     , mtl
     , transformers
     , concurrent-extra
+    , servant
+    , servant-server
+    , wai
+    , warp
 
 executable smirk-server
   main-is:             Main.hs

@@ -15,6 +15,7 @@ import qualified System.Hardware.Serialport    as Serial
 import           Smirk.Control
 import           Smirk.M
 import           Smirk.Opts
+import           Smirk.Server                   ( runSmirkServer )
 
 main :: IO ()
 main = do
@@ -22,10 +23,13 @@ main = do
   let acquireSerialPort = mkAcquire
         (Serial.openSerial serialPortPath serialPortSettings)
         Serial.closeSerial
-  withAcquire acquireSerialPort $ \serialPort -> do
-    serialPortLock <- Lock.new
-    let ctx = Ctx { .. }
-    flip runM ctx $ case cmd of
-      Control controlCmd -> do
+  serialPortLock <- Lock.new
+  case cmd of
+    Control controlCmd -> withAcquire acquireSerialPort $ \serialPort -> do
+      let ctx = Ctx { .. }
+      flip runM ctx $ do
         res <- runControlCmd controlCmd
         liftIO $ BS8.putStrLn res
+    Serve ->
+      let mkCtx serialPort = Ctx { .. }
+      in  runSmirkServer acquireSerialPort mkCtx
