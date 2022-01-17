@@ -1,6 +1,6 @@
 module Main where
 
-import qualified Lib
+import qualified Smirk
 
 main :: IO ()
-main = Lib.main
+main = Smirk.main
