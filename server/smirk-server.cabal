@@ -69,6 +69,7 @@ library
     , servant-server
     , wai
     , warp
+    , aeson
 
 executable smirk-server
   main-is:             Main.hs
