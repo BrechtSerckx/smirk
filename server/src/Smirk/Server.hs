@@ -40,22 +40,30 @@ instance ToJSON IrSignal where
   toJSON IrSignal {..} =
     object ["format" .= format, "freq" .= freq, "data" .= data_]
 
+newtype ClientToken = ClientToken {unClientToken :: Text}
+
+instance FromJSON ClientToken where
+  parseJSON = withObject "ClientToken" $ \o -> do
+    unClientToken <- o .: "clienttoken"
+    pure ClientToken { .. }
+instance ToJSON ClientToken where
+  toJSON ClientToken {..} = object ["clienttoken" .= unClientToken]
+
 -- brittany-disable-next-binding
 type SmirkApi
-  =  "messages"
-  :>  (  Get '[JSON] IrSignal
-    :<|> ReqBody '[JSON] IrSignal
-      :> Post '[JSON] ()
-      )
+  =    "messages" :> Get '[JSON] IrSignal
+  :<|> "messages" :> ReqBody '[JSON] IrSignal :> Post '[JSON] ()
+  :<|> "keys" :> Post '[JSON] ClientToken
 
 pSmirkApi :: Proxy SmirkApi
 pSmirkApi = Proxy
 
 smirkServer :: Monad m => Servant.ServerT SmirkApi m
-smirkServer = getLatestIrSignal :<|> sendIrSignal
+smirkServer = getLatestIrSignal :<|> sendIrSignal :<|> getClientToken
  where
   getLatestIrSignal = pure IrSignal { format = Raw, freq = 38, data_ = [] }
   sendIrSignal _ = pure ()
+  getClientToken = pure $ ClientToken "foobar"
 
 mToHandler :: MkCtx -> forall a . M a -> Servant.Handler a
 mToHandler (acquireSerialPort, mkCtx) act =
