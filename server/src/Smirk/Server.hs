@@ -13,6 +13,8 @@ import           Data.Text                      ( Text )
 import qualified Data.Text                     as Text
 import qualified Network.Avahi                 as Avahi
 import qualified Network.Wai.Handler.Warp      as Warp
+import qualified Network.Wai.Middleware.RequestLogger
+                                               as Wai
 import           Servant.API
 import qualified Servant.Server                as Servant
 
@@ -84,7 +86,9 @@ runSmirkServer warpSettings mkCtx = do
           servicePort     = fromIntegral $ Warp.getPort warpSettings
           serviceText     = "foobar"
       in  Avahi.Service { .. }
+  putStrLn "Starting webserver"
   Warp.runSettings warpSettings
+    . Wai.logStdoutDev
     . Servant.serve pSmirkApi
     . Servant.hoistServer pSmirkApi (mToHandler mkCtx)
     $ smirkServer
