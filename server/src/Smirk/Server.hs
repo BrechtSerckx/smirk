@@ -16,6 +16,7 @@ import           Servant.API
 import qualified Servant.Server                as Servant
 
 import           Smirk.Control
+import           Smirk.Effects.SerialPort
 import           Smirk.M
 
 newtype IrSignal = IrSignal {signal  :: Int}
@@ -40,11 +41,11 @@ type SmirkApi
 pSmirkApi :: Proxy SmirkApi
 pSmirkApi = Proxy
 
-smirkServer :: Monad m => Servant.ServerT SmirkApi m
+smirkServer :: HasSerialPort m => Servant.ServerT SmirkApi m
 smirkServer = getLatestIrSignal :<|> sendIrSignal
  where
-  getLatestIrSignal = pure IrSignal { signal = 0 }
-  sendIrSignal _ = pure ()
+  getLatestIrSignal = IrSignal <$> receive
+  sendIrSignal _ = send
 
 mToHandler :: MkCtx -> forall a . M a -> Servant.Handler a
 mToHandler (acquireSerialPort, mkCtx) act =
