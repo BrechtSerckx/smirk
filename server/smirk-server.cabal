@@ -70,7 +70,6 @@ library
     , wai
     , warp
     , aeson
-    , avahi
     , text
     , wai-extra
 
