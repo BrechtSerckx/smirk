@@ -27,3 +27,6 @@ Content-Type: application/json
     1190
   ]
 }
+
+# Get a clienttoken
+POST :host/keys
