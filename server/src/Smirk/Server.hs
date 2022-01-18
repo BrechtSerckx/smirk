@@ -11,6 +11,7 @@ import           Data.Aeson
 import           Data.Proxy                     ( Proxy(..) )
 import           Data.Text                      ( Text )
 import qualified Data.Text                     as Text
+import qualified Network.Avahi                 as Avahi
 import qualified Network.Wai.Handler.Warp      as Warp
 import           Servant.API
 import qualified Servant.Server                as Servant
@@ -71,7 +72,18 @@ mToHandler (acquireSerialPort, mkCtx) act =
     act `runM` mkCtx serialPort
 
 runSmirkServer :: Warp.Settings -> MkCtx -> IO ()
-runSmirkServer warpSettings mkCtx =
+runSmirkServer warpSettings mkCtx = do
+  putStrLn "Announcing Smirk"
+  Avahi.announce
+    $ let serviceProtocol = Avahi.PROTO_INET
+          serviceName     = "Smirk"
+          serviceType     = "_irkit._tcp"
+          serviceDomain   = "local"
+          serviceHost     = "jeanine.local"
+          serviceAddress  = Just "192.168.178.34"
+          servicePort     = fromIntegral $ Warp.getPort warpSettings
+          serviceText     = "foobar"
+      in  Avahi.Service { .. }
   Warp.runSettings warpSettings
     . Servant.serve pSmirkApi
     . Servant.hoistServer pSmirkApi (mToHandler mkCtx)

@@ -70,6 +70,7 @@ library
     , wai
     , warp
     , aeson
+    , avahi
     , text
 
 executable smirk-server
