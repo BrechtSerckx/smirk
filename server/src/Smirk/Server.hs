@@ -15,6 +15,7 @@ import qualified Network.Wai.Middleware.RequestLogger
 import           Servant.API
 import qualified Servant.Server                as Servant
 
+import           Smirk.Control
 import           Smirk.M
 
 newtype IrSignal = IrSignal {signal  :: Int}

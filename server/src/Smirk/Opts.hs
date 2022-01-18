@@ -15,14 +15,20 @@ import           System.Hardware.Serialport    as Export
                                                 , defaultSerialSettings
                                                 )
 
-import           Smirk.Control
-
 pSerialPortSettings :: Parser SerialPortSettings
 pSerialPortSettings = do
   timeout <-
     option auto $ long "serial-timeout" <> value 10 <> showDefault <> help
       "Serial timeout in 1/10th seconds"
   pure defaultSerialSettings { timeout = timeout }
+
+data ControlCmd
+  = NoOp
+  | Ping
+  | Version
+  | Add Int
+  | Send
+  | Receive
 
 pControlCmd :: Parser ControlCmd
 pControlCmd = hsubparser $ mconcat

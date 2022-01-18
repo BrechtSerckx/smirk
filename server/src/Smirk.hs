@@ -9,7 +9,8 @@ import           Control.Monad.IO.Class         ( MonadIO(..) )
 import           Data.Acquire                   ( mkAcquire
                                                 , withAcquire
                                                 )
-import qualified Data.ByteString.Char8         as BS8
+import qualified Data.Text                     as Text
+import qualified Data.Text.IO                  as Text
 import qualified System.Hardware.Serialport    as Serial
 
 import           Smirk.Control
@@ -28,8 +29,14 @@ main = do
     Control controlCmd -> withAcquire acquireSerialPort $ \serialPort -> do
       let ctx = Ctx { .. }
       flip runM ctx $ do
-        res <- runControlCmd controlCmd
-        liftIO $ BS8.putStrLn res
+        res <- case controlCmd of
+          NoOp    -> noOp >> pure "OK"
+          Ping    -> ping >> pure "pong"
+          Version -> version
+          Add i   -> Text.pack . show <$> add i
+          Send    -> send >> pure "OK"
+          Receive -> Text.pack . show <$> receive
+        liftIO $ Text.putStrLn res
     Serve warpSettings ->
       let mkCtx serialPort = Ctx { .. }
       in  runSmirkServer warpSettings (acquireSerialPort, mkCtx)
