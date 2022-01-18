@@ -2,31 +2,16 @@
 :host = http://localhost:8765
 
 
-# Get latest received IR signal
+# Get the last received IR signal
 # Response body:
 # {
-#   "format": raw only,
-#   "freq": IR sub-carrier frequency. 38 or 40 only. [kHz],
-#   "data": IR signal consists of ON/OFF of sub carrier frequency. IRKit measures On to Off, Off to On interval using a 2MHz counter. data value is an array of those intervals
+#   "signal": infrared signal
 # }
-GET :host/messages
+GET :host/api/signal
 
-# Get latest received IR signal
-POST :host/messages
+# Send a IR signal
+POST :host/api/signal
 Content-Type: application/json
 {
-  "format": "raw",
-  "freq": 38,
-  "data": [
-    18031, 8755, 1190, 1190, 1190, 3341, 1190, 3341, 1190, 3341, 1190, 1190,
-    1190, 3341, 1190, 3341, 1190, 3341, 1190, 3341, 1190, 3341, 1190, 3341,
-    1190, 1190, 1190, 1190, 1190, 1190, 1190, 1190, 1190, 3341, 1190, 3341,
-    1190, 1190, 1190, 3341, 1190, 1190, 1190, 1190, 1190, 1190, 1190, 1190,
-    1190, 1190, 1190, 1190, 1190, 1190, 1190, 1190, 1190, 3341, 1190, 3341,
-    1190, 3341, 1190, 3341, 1190, 3341, 1190, 65535, 0, 9379, 18031, 4400,
-    1190
-  ]
+  "signal": 42
 }
-
-# Get a clienttoken
-POST :host/keys
