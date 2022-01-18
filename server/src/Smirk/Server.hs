@@ -9,7 +9,8 @@ import           Control.Monad.IO.Class         ( MonadIO(..) )
 import           Data.Acquire                   ( withAcquire )
 import           Data.Aeson
 import           Data.Proxy                     ( Proxy(..) )
-import           GHC.Generics                   ( Generic(..) )
+import           Data.Text                      ( Text )
+import qualified Data.Text                     as Text
 import qualified Network.Wai.Handler.Warp      as Warp
 import           Servant.API
 import qualified Servant.Server                as Servant
@@ -17,15 +18,27 @@ import qualified Servant.Server                as Servant
 import           Smirk.M
 
 data IrSignalType = Raw
-  deriving stock Generic
-  deriving anyclass (FromJSON, ToJSON)
+instance FromJSON IrSignalType where
+  parseJSON = withText "IrSignalType" $ \case
+    "raw" -> pure Raw
+    t     -> fail $ "Unknown IrSignalType: " <> Text.unpack t
+instance ToJSON IrSignalType where
+  toJSON = \case
+    Raw -> String "raw"
 data IrSignal = IrSignal
   { format :: IrSignalType
   , freq   :: Int
   , data_  :: [Int]
   }
-  deriving stock Generic
-  deriving anyclass (FromJSON, ToJSON)
+instance FromJSON IrSignal where
+  parseJSON = withObject "IrSignal" $ \o -> do
+    format <- o .: "format"
+    freq   <- o .: "freq"
+    data_  <- o .: "data"
+    pure IrSignal { .. }
+instance ToJSON IrSignal where
+  toJSON IrSignal {..} =
+    object ["format" .= format, "freq" .= freq, "data" .= data_]
 
 -- brittany-disable-next-binding
 type SmirkApi
