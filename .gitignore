@@ -1,2 +1,3 @@
 /.direnv/
-/dist/
+dist/
+dist-newstyle/
