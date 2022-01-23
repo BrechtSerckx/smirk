@@ -1,10 +1,14 @@
 module Smirk.Control where
 
 import           Control.Monad
+import           Data.Aeson
 import qualified Data.ByteString               as BS
 import qualified Data.ByteString.Char8         as BS8
+import qualified Data.ByteString.Lazy          as BSL
+import           Data.Data
 import           Data.Text                      ( Text )
 import qualified Data.Text.Encoding            as Text
+import           Debug.Trace
 import qualified System.Hardware.Serialport    as Serial
 
 import           Smirk.Effects.SerialPort
@@ -16,22 +20,30 @@ data ControlCmd
   | Add Int
   | Send
   | Receive
+  deriving stock (Show, Data)
+instance ToJSON ControlCmd where
+  toJSON cmd =
+    let type_ = showConstr $ toConstr cmd
+        data_ = case cmd of
+          NoOp    -> Nothing
+          Ping    -> Nothing
+          Version -> Nothing
+          Add i   -> Just i
+          Send    -> Nothing
+          Receive -> Nothing
+    in  object ["type" .= type_, "data" .= data_]
 
 resOk :: BS.ByteString
 resOk = BS.singleton 0x00
 
 renderControlCmd :: ControlCmd -> BS.ByteString
-renderControlCmd = \case
-  NoOp    -> BS.singleton 0x00
-  Ping    -> BS.singleton 0x01
-  Version -> BS.singleton 0x02
-  Add i   -> BS.singleton 0x03 <> BS8.pack (show i)
-  Send    -> BS.singleton 0x04
-  Receive -> BS.singleton 0x05
+renderControlCmd = BSL.toStrict . encode
 
 serialSendRecv :: HasSerialPort m => ControlCmd -> m BS.ByteString
 serialSendRecv cmd = withSerialPort $ \s -> do
-  void . Serial.send s $ renderControlCmd cmd
+  let bs = renderControlCmd cmd
+  traceShowM bs
+  void $ Serial.send s bs
   Serial.recv s 100
 
 expecting :: Monad m => BS.ByteString -> m BS.ByteString -> m ()
@@ -48,7 +60,7 @@ noOp :: HasSerialPort m => m ()
 noOp = expecting resOk $ serialSendRecv NoOp
 
 ping :: HasSerialPort m => m ()
-ping = expecting pong $ serialSendRecv Ping where pong = renderControlCmd Ping
+ping = expecting pong $ serialSendRecv Ping where pong = BS.singleton 0x01
 
 version :: HasSerialPort m => m Text
 version = Text.decodeUtf8 <$> serialSendRecv Version

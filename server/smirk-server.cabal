@@ -21,6 +21,7 @@ common common-default-extensions
   default-extensions:
     ApplicativeDo
     DeriveAnyClass
+    DeriveDataTypeable
     DeriveGeneric
     DerivingVia
     FlexibleContexts

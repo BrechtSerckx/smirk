@@ -1,3 +1,4 @@
+#include <ArduinoJson.h>
 /*
  * SERIAL
  */
@@ -22,7 +23,6 @@ void setupSerial() {
  * NOOP
  */
 
-#define CMD_NULL 0x00
 void noop() {
   Serial.write(RES_OK);
 }
@@ -31,16 +31,15 @@ void noop() {
  * PING
  */
 
-#define CMD_PING 0x01
+#define RES_PONG 0x01
 void pong() {
-  Serial.write(CMD_PING);
+  Serial.write(RES_PONG);
 }
 
 /*
  * VERSION
  */
 
-#define CMD_VERSION 0x02
 #define VERSION "dev"
 void version() {
   Serial.write(VERSION);
@@ -50,9 +49,7 @@ void version() {
  * ADD
  */
 
-#define CMD_ADD 0x03
-void add() {
-  long int n = Serial.parseInt();
+void add(int n) {
   if ( n == 0 ) {
     Serial.print("Error: ADD command did not receive a number > 0");
   } else {
@@ -64,8 +61,6 @@ void add() {
 /*
  * SENDER
  */
-
-#define CMD_SEND 0x04
 
 void setupSender() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -81,8 +76,6 @@ void send() {
 /*
  * RECEIVER
  */
-
-#define CMD_RECEIVE 0x05
 
 #define RECEIVER_PIN 2
 unsigned short receiveCount = 0;
@@ -119,29 +112,33 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   if (Serial.available() > 0) {
-    byte cmd = Serial.read();
-    switch (cmd) {
-      case CMD_NULL:
+    StaticJsonDocument<300> doc;
+    DeserializationError err = deserializeJson(doc, Serial);
+    if (err == DeserializationError::Ok) {
+      const char* cmd = doc["type"];
+      if (strcmp(cmd, "NoOp") == 0) {
         noop();
-        break;
-      case CMD_PING:
+      } else if (strcmp(cmd, "Ping") == 0) {
         pong();
-        break;
-      case CMD_VERSION:
+      } else if (strcmp(cmd, "Version") == 0) {
         version();
-        break;
-      case CMD_ADD:
-        add();
-        break;
-      case CMD_SEND:
+      } else if (strcmp(cmd, "Add") == 0) {
+        const int n = doc["data"];
+        add(n);
+      } else if (strcmp(cmd, "Send") == 0) {
         send();
-        break;
-      case CMD_RECEIVE:
+      } else if (strcmp(cmd, "Receive") == 0) {
         receive();
-        break;
-      default:
+      } else {
         Serial.print("Error: unrecognized command: ");
-        Serial.print(cmd, HEX);
+        Serial.print(cmd);
+      }
+    } else {
+        Serial.print("Error: invalid json: ");
+        Serial.print(err.c_str());
+    }
+    while (Serial.available() > 0) {
+      Serial.read();
     }
   }
 }
