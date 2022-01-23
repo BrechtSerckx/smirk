@@ -6,17 +6,75 @@ import qualified Data.ByteString               as BS
 import qualified Data.ByteString.Lazy          as BSL
 import           Data.Data
 import           Data.Text                      ( Text )
+import           Data.Text.Read
+import           Data.Word
 import           Debug.Trace
+import           GHC.Generics                   ( Generic )
 import qualified System.Hardware.Serialport    as Serial
 
 import           Smirk.Effects.SerialPort
+
+data SignalProtocol
+  = Unknown
+  | NEC
+  | Sony
+  | RC5
+  | RC6
+  | PanasonicOld
+  | JVC
+  | NECX
+  | Samsung36
+  | GiCable
+  | DirecTV
+  | RCMM
+  | CYKM
+  deriving stock (Generic, Show, Read, Bounded, Enum, Data)
+  deriving anyclass (FromJSON, ToJSON)
+
+data IrSignal = IrSignal
+  { signalProtocol :: SignalProtocol
+  , signalValue    :: Word32
+  , signalBits     :: Word8
+  , signalAddress  :: Word16
+  }
+  deriving stock (Show, Data)
+instance FromJSON IrSignal where
+  parseJSON = withObject "IrSignal" $ \o -> do
+    signalProtocol <- o .: "protocol"
+    signalValue    <- either error fst . hexadecimal <$> o .: "value"
+    signalBits     <- o .: "bits"
+    signalAddress  <- either error fst . hexadecimal <$> o .: "address"
+    pure IrSignal { .. }
+instance ToJSON IrSignal where
+  toJSON IrSignal {..} = object
+    [ "protocol" .= signalProtocol
+    , "value" .= signalValue
+    , "bits" .= signalBits
+    , "address" .= signalAddress
+    ]
+
+newtype InternalIrSignal = InternalIrSignal { unInternalIrSignal :: IrSignal }
+instance FromJSON InternalIrSignal where
+  parseJSON = withObject "InternalIrSignal" $ \o -> do
+    signalProtocol <- toEnum <$> o .: "protocol"
+    signalValue    <- o .: "value"
+    signalBits     <- o .: "bits"
+    signalAddress  <- o .: "address"
+    pure $ InternalIrSignal IrSignal { .. }
+instance ToJSON InternalIrSignal where
+  toJSON (InternalIrSignal IrSignal {..}) = object
+    [ "protocol" .= fromEnum signalProtocol
+    , "value" .= signalValue
+    , "bits" .= signalBits
+    , "address" .= signalAddress
+    ]
 
 data ControlCmd
   = NoOp
   | Ping
   | Version
   | Add Int
-  | Send
+  | Send IrSignal
   | Receive
   deriving stock (Show, Data)
 
@@ -27,8 +85,8 @@ instance ToJSON ControlCmd where
           NoOp    -> Nothing
           Ping    -> Nothing
           Version -> Nothing
-          Add i   -> Just i
-          Send    -> Nothing
+          Add  i  -> Just $ toJSON i
+          Send s  -> Just $ toJSON s
           Receive -> Nothing
     in  object ["type" .= type_, "data" .= data_]
 
@@ -86,8 +144,8 @@ version = serialSendRecv Version
 add :: HasSerialPort m => Int -> m Int
 add = serialSendRecv . Add
 
-send :: HasSerialPort m => m ()
-send = expecting Ok $ serialSendRecv Send
+send :: HasSerialPort m => IrSignal -> m ()
+send = expecting Ok . serialSendRecv . Send
 
-receive :: HasSerialPort m => m Int
-receive = serialSendRecv Receive
+receive :: HasSerialPort m => m IrSignal
+receive = unInternalIrSignal <$> serialSendRecv Receive

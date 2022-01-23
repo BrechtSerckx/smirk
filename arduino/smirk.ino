@@ -73,7 +73,7 @@ void setupSender() {
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
-StaticJsonDocument<300> send() {
+StaticJsonDocument<300> send(uint8_t protocolNum, uint32_t value, uint8_t bits, uint16_t address) {
   digitalWrite(LED_BUILTIN, HIGH);
   delay(300);
   digitalWrite(LED_BUILTIN, LOW);
@@ -143,7 +143,11 @@ void loop() {
         const int n = doc["data"];
         resp = add(n);
       } else if (strcmp(cmd, "Send") == 0) {
-        resp = send();
+        const uint8_t protocolNum = doc["data"]["protocol"];
+        const uint32_t value = doc["data"]["value"];
+        const uint16_t bits = doc["data"]["bits"];
+        const uint8_t address = doc["data"]["address"];
+        resp = send(protocolNum, value, bits, address);
       } else if (strcmp(cmd, "Receive") == 0) {
         resp = receive();
       } else {

@@ -7,7 +7,6 @@ module Smirk.Server
 
 import           Control.Monad.IO.Class         ( MonadIO(..) )
 import           Data.Acquire                   ( withAcquire )
-import           Data.Aeson
 import           Data.Proxy                     ( Proxy(..) )
 import qualified Network.Wai.Handler.Warp      as Warp
 import qualified Network.Wai.Middleware.RequestLogger
@@ -19,13 +18,7 @@ import           Smirk.Control
 import           Smirk.Effects.SerialPort
 import           Smirk.M
 
-newtype IrSignal = IrSignal {signal  :: Int}
-instance FromJSON IrSignal where
-  parseJSON = withObject "IrSignal" $ \o -> do
-    signal <- o .: "signal"
-    pure IrSignal { .. }
-instance ToJSON IrSignal where
-  toJSON IrSignal {..} = object ["signal" .= signal]
+
 
 -- brittany-disable-next-binding
 type SmirkApi
@@ -44,8 +37,8 @@ pSmirkApi = Proxy
 smirkServer :: HasSerialPort m => Servant.ServerT SmirkApi m
 smirkServer = getLatestIrSignal :<|> sendIrSignal
  where
-  getLatestIrSignal = IrSignal <$> receive
-  sendIrSignal _ = send
+  getLatestIrSignal = receive
+  sendIrSignal      = send
 
 mToHandler :: MkCtx -> forall a . M a -> Servant.Handler a
 mToHandler (acquireSerialPort, mkCtx) act =

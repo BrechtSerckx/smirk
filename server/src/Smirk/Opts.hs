@@ -15,7 +15,9 @@ import           System.Hardware.Serialport    as Export
                                                 , defaultSerialSettings
                                                 )
 
-import           Smirk.Control                  ( ControlCmd(..) )
+import           Smirk.Control                  ( ControlCmd(..)
+                                                , IrSignal(..)
+                                                )
 
 pSerialPortSettings :: Parser SerialPortSettings
 pSerialPortSettings = do
@@ -34,7 +36,15 @@ pControlCmd = hsubparser $ mconcat
   , command "add"
   $      (Add <$> argument auto mempty)
   `info` (fullDesc <> progDesc "Add a number on the Smirk Arduino.")
-  , command "send" $ pure Send `info` (fullDesc <> progDesc "Send a code.")
+  , command "send"
+  $      (do
+           signalProtocol <- option auto $ long "protocol"
+           signalValue    <- option auto $ long "value"
+           signalBits     <- option auto $ long "bits"
+           signalAddress  <- option auto $ long "address"
+           pure $ Send IrSignal { .. }
+         )
+  `info` (fullDesc <> progDesc "Send a code.")
   , command "receive"
   $      pure Receive
   `info` (fullDesc <> progDesc "Get the last received code .")

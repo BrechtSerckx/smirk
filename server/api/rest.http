@@ -13,5 +13,8 @@ GET :host/api/signal
 POST :host/api/signal
 Content-Type: application/json
 {
-  "signal": 42
+  "protocol": "RC6",
+  "value": "0xC",
+  "bits": 20,
+  "address": "0x0"
 }

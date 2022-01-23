@@ -33,8 +33,8 @@ main = do
           NoOp    -> noOp >> pure "OK"
           Ping    -> ping >> pure "pong"
           Version -> version
-          Add i   -> Text.pack . show <$> add i
-          Send    -> send >> pure "OK"
+          Add  i  -> Text.pack . show <$> add i
+          Send s  -> send s >> pure "OK"
           Receive -> Text.pack . show <$> receive
         liftIO $ Text.putStrLn res
     Serve warpSettings ->
