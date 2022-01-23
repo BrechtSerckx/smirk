@@ -18,8 +18,8 @@ void setupSerial() {
  * NOOP
  */
 
-StaticJsonDocument<300> noOp() {
-  StaticJsonDocument<300> doc;
+StaticJsonDocument<400> noOp() {
+  StaticJsonDocument<400> doc;
   doc["type"] = "Success";
   doc["data"] = "";
   return doc;
@@ -29,8 +29,8 @@ StaticJsonDocument<300> noOp() {
  * PING
  */
 
-StaticJsonDocument<300> pong() {
-  StaticJsonDocument<300> doc;
+StaticJsonDocument<400> pong() {
+  StaticJsonDocument<400> doc;
   doc["type"] = "Success";
   doc["data"] = "pong";
   return doc;
@@ -41,8 +41,8 @@ StaticJsonDocument<300> pong() {
  */
 
 #define VERSION "dev"
-StaticJsonDocument<300> version() {
-  StaticJsonDocument<300> doc;
+StaticJsonDocument<400> version() {
+  StaticJsonDocument<400> doc;
   doc["type"] = "Success";
   doc["data"] = VERSION;
   return doc;
@@ -52,8 +52,8 @@ StaticJsonDocument<300> version() {
  * ADD
  */
 
-StaticJsonDocument<300> add(int n) {
-  StaticJsonDocument<300> doc;
+StaticJsonDocument<400> add(int n) {
+  StaticJsonDocument<400> doc;
   if ( n <= 0) {
     doc["type"] = "Failure";
     doc["data"] = "ADD command did not receive a number > 0";
@@ -73,11 +73,11 @@ void setupSender() {
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
-StaticJsonDocument<300> send(uint8_t protocolNum, uint32_t value, uint8_t bits, uint16_t address) {
+StaticJsonDocument<400> send(uint8_t protocolNum, uint32_t value, uint8_t bits, uint16_t address) {
   digitalWrite(LED_BUILTIN, HIGH);
-  delay(300);
+  delay(400);
   digitalWrite(LED_BUILTIN, LOW);
-  StaticJsonDocument<300> doc;
+  StaticJsonDocument<400> doc;
   doc["type"] = "Success";
   doc["data"] = "";
   return doc;
@@ -104,10 +104,13 @@ void setupReceiver() {
   attachInterrupt(digitalPinToInterrupt(RECEIVER_PIN), receiverInterrupt, RISING);
 }
 
-StaticJsonDocument<300> receive() {
-  StaticJsonDocument<300> doc;
+StaticJsonDocument<400> receive() {
+  StaticJsonDocument<400> doc;
   doc["type"] = "Success";
-  doc["data"] = receiveCount;
+  doc["data"]["protocol"] = 0;
+  doc["data"]["value"] = receiveCount;
+  doc["data"]["bits"] = 0;
+  doc["data"]["address"] = 0x0;
   return doc;
 }
 
@@ -125,8 +128,8 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   if (Serial.available() > 0) {
-    StaticJsonDocument<300> doc;
-    StaticJsonDocument<300> resp;
+    StaticJsonDocument<400> doc;
+    StaticJsonDocument<400> resp;
     DeserializationError err = deserializeJson(doc, Serial);
     while (Serial.available() > 0) {
       Serial.read();
@@ -158,7 +161,7 @@ void loop() {
       resp["type"] = "Failure";
       resp["data"] = strcat("Invalid json: ", err.c_str());
     }
-    WriteBufferingStream bufferedStream(Serial,64);
+    WriteBufferingStream bufferedStream(Serial,128);
     serializeJson(resp, bufferedStream);
     bufferedStream.flush();
   }
