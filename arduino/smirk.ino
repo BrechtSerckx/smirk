@@ -1,4 +1,5 @@
 #include <ArduinoJson.h>
+#include <StreamUtils.h>
 /*
  * SERIAL
  */
@@ -14,26 +15,25 @@ void setupSerial() {
 }
 
 /*
- * OK
- */
-
-#define RES_OK byte(0x00)
-
-/*
  * NOOP
  */
 
-void noop() {
-  Serial.write(RES_OK);
+StaticJsonDocument<300> noOp() {
+  StaticJsonDocument<300> doc;
+  doc["type"] = "Success";
+  doc["data"] = "";
+  return doc;
 }
 
 /*
  * PING
  */
 
-#define RES_PONG 0x01
-void pong() {
-  Serial.write(RES_PONG);
+StaticJsonDocument<300> pong() {
+  StaticJsonDocument<300> doc;
+  doc["type"] = "Success";
+  doc["data"] = "pong";
+  return doc;
 }
 
 /*
@@ -41,21 +41,28 @@ void pong() {
  */
 
 #define VERSION "dev"
-void version() {
-  Serial.write(VERSION);
+StaticJsonDocument<300> version() {
+  StaticJsonDocument<300> doc;
+  doc["type"] = "Success";
+  doc["data"] = VERSION;
+  return doc;
 }
 
 /*
  * ADD
  */
 
-void add(int n) {
-  if ( n == 0 ) {
-    Serial.print("Error: ADD command did not receive a number > 0");
+StaticJsonDocument<300> add(int n) {
+  StaticJsonDocument<300> doc;
+  if ( n <= 0) {
+    doc["type"] = "Failure";
+    doc["data"] = "ADD command did not receive a number > 0";
   } else {
     n++;
-    Serial.print(n);
+    doc["type"] = "Success";
+    doc["data"] = n;
   }
+  return doc;
 }
 
 /*
@@ -66,11 +73,14 @@ void setupSender() {
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
-void send() {
+StaticJsonDocument<300> send() {
   digitalWrite(LED_BUILTIN, HIGH);
-  delay(100);
+  delay(300);
   digitalWrite(LED_BUILTIN, LOW);
-  Serial.write(RES_OK);
+  StaticJsonDocument<300> doc;
+  doc["type"] = "Success";
+  doc["data"] = "";
+  return doc;
 }
 
 /*
@@ -94,8 +104,11 @@ void setupReceiver() {
   attachInterrupt(digitalPinToInterrupt(RECEIVER_PIN), receiverInterrupt, RISING);
 }
 
-void receive() {
-  Serial.print(receiveCount);
+StaticJsonDocument<300> receive() {
+  StaticJsonDocument<300> doc;
+  doc["type"] = "Success";
+  doc["data"] = receiveCount;
+  return doc;
 }
 
 /*
@@ -113,32 +126,36 @@ void loop() {
   // put your main code here, to run repeatedly:
   if (Serial.available() > 0) {
     StaticJsonDocument<300> doc;
+    StaticJsonDocument<300> resp;
     DeserializationError err = deserializeJson(doc, Serial);
-    if (err == DeserializationError::Ok) {
-      const char* cmd = doc["type"];
-      if (strcmp(cmd, "NoOp") == 0) {
-        noop();
-      } else if (strcmp(cmd, "Ping") == 0) {
-        pong();
-      } else if (strcmp(cmd, "Version") == 0) {
-        version();
-      } else if (strcmp(cmd, "Add") == 0) {
-        const int n = doc["data"];
-        add(n);
-      } else if (strcmp(cmd, "Send") == 0) {
-        send();
-      } else if (strcmp(cmd, "Receive") == 0) {
-        receive();
-      } else {
-        Serial.print("Error: unrecognized command: ");
-        Serial.print(cmd);
-      }
-    } else {
-        Serial.print("Error: invalid json: ");
-        Serial.print(err.c_str());
-    }
     while (Serial.available() > 0) {
       Serial.read();
     }
+    if (err == DeserializationError::Ok) {
+      const char* cmd = doc["type"];
+      if (strcmp(cmd, "NoOp") == 0) {
+        resp = noOp();
+      } else if (strcmp(cmd, "Ping") == 0) {
+        resp = pong();
+      } else if (strcmp(cmd, "Version") == 0) {
+        resp = version();
+      } else if (strcmp(cmd, "Add") == 0) {
+        const int n = doc["data"];
+        resp = add(n);
+      } else if (strcmp(cmd, "Send") == 0) {
+        resp = send();
+      } else if (strcmp(cmd, "Receive") == 0) {
+        resp = receive();
+      } else {
+        resp["type"] = "Failure";
+        resp["data"] = strcat("Unrecognized command: " , cmd);
+      }
+    } else {
+      resp["type"] = "Failure";
+      resp["data"] = strcat("Invalid json: ", err.c_str());
+    }
+    WriteBufferingStream bufferedStream(Serial,64);
+    serializeJson(resp, bufferedStream);
+    bufferedStream.flush();
   }
 }
