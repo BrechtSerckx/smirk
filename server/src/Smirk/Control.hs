@@ -3,6 +3,7 @@ module Smirk.Control where
 import           Control.Monad
 import           Data.Aeson
 import qualified Data.ByteString               as BS
+import qualified Data.ByteString.Char8         as BS8
 import qualified Data.ByteString.Lazy          as BSL
 import           Data.Data
 import           Data.Text                      ( Text )
@@ -56,17 +57,17 @@ instance ToJSON IrSignal where
 newtype InternalIrSignal = InternalIrSignal { unInternalIrSignal :: IrSignal }
 instance FromJSON InternalIrSignal where
   parseJSON = withObject "InternalIrSignal" $ \o -> do
-    signalProtocol <- toEnum <$> o .: "protocol"
-    signalValue    <- o .: "value"
-    signalBits     <- o .: "bits"
-    signalAddress  <- o .: "address"
+    signalProtocol <- toEnum <$> o .: "p"
+    signalValue    <- o .: "v"
+    signalBits     <- o .: "b"
+    signalAddress  <- o .: "a"
     pure $ InternalIrSignal IrSignal { .. }
 instance ToJSON InternalIrSignal where
   toJSON (InternalIrSignal IrSignal {..}) = object
-    [ "protocol" .= fromEnum signalProtocol
-    , "value" .= signalValue
-    , "bits" .= signalBits
-    , "address" .= signalAddress
+    [ "p" .= fromEnum signalProtocol
+    , "v" .= signalValue
+    , "b" .= signalBits
+    , "a" .= signalAddress
     ]
 
 data ControlCmd
@@ -88,17 +89,16 @@ instance ToJSON ControlCmd where
           Add  i  -> Just $ toJSON i
           Send s  -> Just $ toJSON s
           Receive -> Nothing
-    in  object ["type" .= type_, "data" .= data_]
+    in  object ["t" .= type_, "d" .= data_]
 
 data SerialResponse a
   = SerialSuccess a
   | SerialFailure String
 
 instance FromJSON a => FromJSON (SerialResponse a) where
-  parseJSON = withObject "SerialResponse" $ \o -> o .: "type" >>= \case
-    ("Failure" :: Text) -> SerialFailure <$> o .: "data"
-    ("Success" :: Text) -> SerialSuccess <$> o .: "data"
-    t                   -> fail $ "Unrecognized 'type': " <> show t
+  parseJSON = withObject "SerialResponse" $ \o -> o .: "t" >>= \case
+    False -> SerialFailure <$> o .: "d"
+    True  -> SerialSuccess <$> o .: "d"
 
 data Ok = Ok
   deriving stock (Show, Eq)
@@ -111,11 +111,13 @@ renderControlCmd = BSL.toStrict . encode
 
 serialSendRecv :: (HasSerialPort m, FromJSON a) => ControlCmd -> m a
 serialSendRecv cmd = withSerialPort $ \s -> do
+  discardedResponse <- Serial.recv s 1000
+  traceM $ "Discarding: " <> BS8.unpack discardedResponse
   let request = renderControlCmd cmd
-  traceShowM request
+  traceM $ "Request: " <> BS8.unpack request
   void $ Serial.send s request
   response <- Serial.recv s 2000
-  traceShowM response
+  traceM $ "Response: " <> BS8.unpack response
   let eResp = eitherDecode $ BSL.fromStrict response
   case eResp of
     Left  e                 -> error e
