@@ -4,7 +4,7 @@
 
 set -eu -o pipefail
 
-if [ ${1-} = "-d" ]; then
+if [ "${1-}" = "-d" ]; then
     if [ -n $2 ]; then
         DIR=$2
         shift; shift
