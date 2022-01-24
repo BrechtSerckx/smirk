@@ -1,5 +1,21 @@
 #include <ArduinoJson.h>
 #include <StreamUtils.h>
+#include <IRLibDecodeBase.h>
+/* #include <IRLib_P01_NEC.h> */
+/* #include <IRLib_P02_Sony.h> */
+#include <IRLib_P03_RC5.h>
+#include <IRLib_P04_RC6.h>
+/* #include <IRLib_P05_Panasonic_Old.h> */
+/* #include <IRLib_P06_JVC.h> */
+/* #include <IRLib_P07_NECx.h> */
+/* #include <IRLib_P08_Samsung36.h> */
+/* #include <IRLib_P09_GICable.h> */
+/* #include <IRLib_P10_DirecTV.h> */
+/* #include <IRLib_P11_RCMM.h> */
+/* #include <IRLib_P12_CYKM.h> */
+#include <IRLibCombo.h>
+#include <IRLibRecvPCI.h> 
+
 /*
  * SERIAL
  */
@@ -88,29 +104,35 @@ StaticJsonDocument<400> send(uint8_t protocolNum, uint32_t value, uint8_t bits, 
  */
 
 #define RECEIVER_PIN 2
-unsigned short receiveCount = 0;
-unsigned long lastReceiverInterrupt = 0;
-
-void receiverInterrupt() {
-  unsigned long currentTime = millis();
-  if (currentTime - lastReceiverInterrupt > 400) {
-    receiveCount++;
-    lastReceiverInterrupt = currentTime;
-  }
-}
+IRrecvPCI myReceiver(RECEIVER_PIN);
+IRdecode myDecoder;
+uint8_t protocolNum = UNKNOWN;
+uint32_t value = 0x0;
+uint16_t bits = 0;
+uint8_t address = 0x0;
 
 void setupReceiver() {
-  pinMode(RECEIVER_PIN, INPUT);
-  attachInterrupt(digitalPinToInterrupt(RECEIVER_PIN), receiverInterrupt, RISING);
+  delay(2000); 
+  myReceiver.enableIRIn();
+}
+void checkReceiver() {
+  if (myReceiver.getResults()) {
+    myDecoder.decode();
+    protocolNum = myDecoder.protocolNum;
+    value = myDecoder.value;
+    bits = myDecoder.bits;
+    address = myDecoder.address;
+    myReceiver.enableIRIn();
+  }
 }
 
 StaticJsonDocument<400> receive() {
   StaticJsonDocument<400> doc;
   doc["t"] = true;
-  doc["d"]["p"] = 0;
-  doc["d"]["v"] = receiveCount;
-  doc["d"]["b"] = 0;
-  doc["d"]["a"] = 0x0;
+  doc["d"]["p"] = protocolNum;
+  doc["d"]["v"] = value;
+  doc["d"]["b"] = bits;
+  doc["d"]["a"] = address;
   return doc;
 }
 
@@ -121,12 +143,17 @@ StaticJsonDocument<400> receive() {
 void setup() {
   // put your setup code here, to run once:
   setupSender();
-  setupReceiver();
   setupSerial();
+  setupReceiver();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+
+  // check IR receiver
+  checkReceiver();
+
+  // check for commands
   if (Serial.available() > 0) {
     StaticJsonDocument<400> doc;
     StaticJsonDocument<400> resp;
