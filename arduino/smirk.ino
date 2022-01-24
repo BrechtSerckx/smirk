@@ -1,6 +1,7 @@
 #include <ArduinoJson.h>
 #include <StreamUtils.h>
 #include <IRLibDecodeBase.h>
+#include <IRLibSendBase.h>
 /* #include <IRLib_P01_NEC.h> */
 /* #include <IRLib_P02_Sony.h> */
 #include <IRLib_P03_RC5.h>
@@ -85,13 +86,14 @@ StaticJsonDocument<400> add(int n) {
  * SENDER
  */
 
+IRsend mySender;
 void setupSender() {
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
-StaticJsonDocument<400> send(uint8_t protocolNum, uint32_t value, uint8_t bits, uint16_t address) {
+StaticJsonDocument<400> send(uint8_t protocolNum, uint32_t value, uint8_t bits, uint16_t address, uint8_t freq=38) {
   digitalWrite(LED_BUILTIN, HIGH);
-  delay(400);
+  mySender.send(protocolNum, value, bits, freq);
   digitalWrite(LED_BUILTIN, LOW);
   StaticJsonDocument<400> doc;
   doc["t"] = true;

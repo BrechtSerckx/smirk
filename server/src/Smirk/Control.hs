@@ -87,7 +87,7 @@ instance ToJSON ControlCmd where
           Ping    -> Nothing
           Version -> Nothing
           Add  i  -> Just $ toJSON i
-          Send s  -> Just $ toJSON s
+          Send s  -> Just . toJSON $ InternalIrSignal s
           Receive -> Nothing
     in  object ["t" .= type_, "d" .= data_]
 
