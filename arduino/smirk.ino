@@ -1,5 +1,4 @@
 #include <ArduinoJson.h>
-#include <StreamUtils.h>
 #include <IRLibDecodeBase.h>
 #include <IRLibSendBase.h>
 /* #include <IRLib_P01_NEC.h> */
@@ -190,8 +189,8 @@ void loop() {
       resp["t"] = false;
       resp["d"] = strcat("Invalid json: ", err.c_str());
     }
-    WriteBufferingStream bufferedStream(Serial,128);
-    serializeJson(resp, bufferedStream);
-    bufferedStream.flush();
+    serializeJson(resp, Serial);
+    Serial.write('\n');
+    Serial.flush();
   }
 }

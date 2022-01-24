@@ -111,18 +111,25 @@ renderControlCmd = BSL.toStrict . encode
 
 serialSendRecv :: (HasSerialPort m, FromJSON a) => ControlCmd -> m a
 serialSendRecv cmd = withSerialPort $ \s -> do
-  discardedResponse <- Serial.recv s 1000
-  traceM $ "Discarding: " <> BS8.unpack discardedResponse
   let request = renderControlCmd cmd
   traceM $ "Request: " <> BS8.unpack request
   void $ Serial.send s request
-  response <- Serial.recv s 2000
+  response <- recvAll s 100
   traceM $ "Response: " <> BS8.unpack response
   let eResp = eitherDecode $ BSL.fromStrict response
   case eResp of
     Left  e                 -> error e
     Right (SerialFailure e) -> error e
     Right (SerialSuccess a) -> pure a
+ where
+  recvAll s timeout =
+    let go acc = do
+          res <- Serial.recv s timeout
+          case BS.stripSuffix "\n" res of
+            Nothing   -> go $ acc <> res
+            Just res' -> pure $ acc <> res'
+    in  go ""
+
 
 expecting :: forall a m . (Monad m, Show a, Eq a) => a -> m a -> m ()
 expecting expected act = do
