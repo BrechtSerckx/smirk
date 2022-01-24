@@ -36,8 +36,8 @@ void setupSerial() {
 
 StaticJsonDocument<400> noOp() {
   StaticJsonDocument<400> doc;
-  doc["t"] = true;
-  doc["d"] = "";
+  doc["success"] = true;
+  doc["data"] = "";
   return doc;
 }
 
@@ -47,8 +47,8 @@ StaticJsonDocument<400> noOp() {
 
 StaticJsonDocument<400> pong() {
   StaticJsonDocument<400> doc;
-  doc["t"] = true;
-  doc["d"] = "pong";
+  doc["success"] = true;
+  doc["data"] = "pong";
   return doc;
 }
 
@@ -59,8 +59,8 @@ StaticJsonDocument<400> pong() {
 #define VERSION "dev"
 StaticJsonDocument<400> version() {
   StaticJsonDocument<400> doc;
-  doc["t"] = true;
-  doc["d"] = VERSION;
+  doc["success"] = true;
+  doc["data"] = VERSION;
   return doc;
 }
 
@@ -71,12 +71,12 @@ StaticJsonDocument<400> version() {
 StaticJsonDocument<400> add(int n) {
   StaticJsonDocument<400> doc;
   if ( n <= 0) {
-    doc["t"] = "Failure";
-    doc["d"] = "ADD command did not receive a number > 0";
+    doc["success"] = "Failure";
+    doc["data"] = "ADD command did not receive a number > 0";
   } else {
     n++;
-    doc["t"] = true;
-    doc["d"] = n;
+    doc["success"] = true;
+    doc["data"] = n;
   }
   return doc;
 }
@@ -95,8 +95,8 @@ StaticJsonDocument<400> send(uint8_t protocolNum, uint32_t value, uint8_t bits, 
   mySender.send(protocolNum, value, bits, freq);
   digitalWrite(LED_BUILTIN, LOW);
   StaticJsonDocument<400> doc;
-  doc["t"] = true;
-  doc["d"] = "";
+  doc["success"] = true;
+  doc["data"] = "";
   return doc;
 }
 
@@ -129,11 +129,11 @@ void checkReceiver() {
 
 StaticJsonDocument<400> receive() {
   StaticJsonDocument<400> doc;
-  doc["t"] = true;
-  doc["d"]["p"] = protocolNum;
-  doc["d"]["v"] = value;
-  doc["d"]["b"] = bits;
-  doc["d"]["a"] = address;
+  doc["success"] = true;
+  doc["data"]["protocolNum"] = protocolNum;
+  doc["data"]["value"] = value;
+  doc["data"]["bits"] = bits;
+  doc["data"]["address"] = address;
   return doc;
 }
 
@@ -163,7 +163,7 @@ void loop() {
       Serial.read();
     }
     if (err == DeserializationError::Ok) {
-      const char* cmd = doc["t"];
+      const char* cmd = doc["cmd"];
       if (strcmp(cmd, "NoOp") == 0) {
         resp = noOp();
       } else if (strcmp(cmd, "Ping") == 0) {
@@ -171,23 +171,23 @@ void loop() {
       } else if (strcmp(cmd, "Version") == 0) {
         resp = version();
       } else if (strcmp(cmd, "Add") == 0) {
-        const int n = doc["d"];
+        const int n = doc["data"];
         resp = add(n);
       } else if (strcmp(cmd, "Send") == 0) {
-        const uint8_t protocolNum = doc["d"]["p"];
-        const uint32_t value = doc["d"]["v"];
-        const uint16_t bits = doc["d"]["b"];
-        const uint8_t address = doc["d"]["a"];
+        const uint8_t protocolNum = doc["data"]["protocolNum"];
+        const uint32_t value = doc["data"]["value"];
+        const uint16_t bits = doc["data"]["bits"];
+        const uint8_t address = doc["data"]["address"];
         resp = send(protocolNum, value, bits, address);
       } else if (strcmp(cmd, "Receive") == 0) {
         resp = receive();
       } else {
-        resp["t"] = false;
-        resp["d"] = strcat("Unrecognized command: " , cmd);
+        resp["success"] = false;
+        resp["data"] = strcat("Unrecognized command: " , cmd);
       }
     } else {
-      resp["t"] = false;
-      resp["d"] = strcat("Invalid json: ", err.c_str());
+      resp["success"] = false;
+      resp["data"] = strcat("Invalid json: ", err.c_str());
     }
     serializeJson(resp, Serial);
     Serial.write('\n');

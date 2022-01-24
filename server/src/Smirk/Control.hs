@@ -57,17 +57,17 @@ instance ToJSON IrSignal where
 newtype InternalIrSignal = InternalIrSignal { unInternalIrSignal :: IrSignal }
 instance FromJSON InternalIrSignal where
   parseJSON = withObject "InternalIrSignal" $ \o -> do
-    signalProtocol <- toEnum <$> o .: "p"
-    signalValue    <- o .: "v"
-    signalBits     <- o .: "b"
-    signalAddress  <- o .: "a"
+    signalProtocol <- toEnum <$> o .: "protocolNum"
+    signalValue    <- o .: "value"
+    signalBits     <- o .: "bits"
+    signalAddress  <- o .: "address"
     pure $ InternalIrSignal IrSignal { .. }
 instance ToJSON InternalIrSignal where
   toJSON (InternalIrSignal IrSignal {..}) = object
-    [ "p" .= fromEnum signalProtocol
-    , "v" .= signalValue
-    , "b" .= signalBits
-    , "a" .= signalAddress
+    [ "protocolNum" .= fromEnum signalProtocol
+    , "value" .= signalValue
+    , "bits" .= signalBits
+    , "address" .= signalAddress
     ]
 
 data ControlCmd
@@ -89,16 +89,16 @@ instance ToJSON ControlCmd where
           Add  i  -> Just $ toJSON i
           Send s  -> Just . toJSON $ InternalIrSignal s
           Receive -> Nothing
-    in  object ["t" .= type_, "d" .= data_]
+    in  object ["cmd" .= type_, "data" .= data_]
 
 data SerialResponse a
   = SerialSuccess a
   | SerialFailure String
 
 instance FromJSON a => FromJSON (SerialResponse a) where
-  parseJSON = withObject "SerialResponse" $ \o -> o .: "t" >>= \case
-    False -> SerialFailure <$> o .: "d"
-    True  -> SerialSuccess <$> o .: "d"
+  parseJSON = withObject "SerialResponse" $ \o -> o .: "success" >>= \case
+    False -> SerialFailure <$> o .: "data"
+    True  -> SerialSuccess <$> o .: "data"
 
 data Ok = Ok
   deriving stock (Show, Eq)
