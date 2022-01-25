@@ -93,10 +93,14 @@ type RefreshNamedIrSignalsEP
   :> PostNoContent
 
 refreshNamedIrSignalsHandler
-  :: HasState "signalMap" (Map Text IrSignal) m
+  :: ( HasState "signalMap" (Map Text IrSignal) m
+     , HasReader "signalMapPath" FilePath m
+     , MonadIO m
+     )
   => Servant.ServerT RefreshNamedIrSignalsEP m
 refreshNamedIrSignalsHandler = do
-  signalMap <- undefined -- FIXME
+  signalMapPath <- Reader.ask @"signalMapPath"
+  signalMap     <- Yaml.decodeFileThrow signalMapPath
   State.put @"signalMap" signalMap
   pure NoContent
 
