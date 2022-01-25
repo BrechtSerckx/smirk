@@ -15,7 +15,7 @@ POST :host/api/ping
 GET :host/api/signal
 
 # Send a IR signal
-POST :host/api/signal
+POST :host/api/signal/send
 Content-Type: application/json
 {
   "protocol": "RC6",

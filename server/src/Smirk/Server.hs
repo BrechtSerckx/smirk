@@ -29,7 +29,7 @@ type SmirkApi = "api" :>
        -- get last received infrared signal
   :<|> "signal" :> Get '[JSON] IrSignal
        -- send infrared signal
-  :<|> "signal" :> ReqBody '[JSON] IrSignal :> Post '[JSON] ()
+  :<|> "signal" :> "send" :> ReqBody '[JSON] IrSignal :> Post '[JSON] ()
     )
 
 pSmirkApi :: Proxy SmirkApi
