@@ -8,7 +8,6 @@ module Smirk.Server
 import           Capability.State               ( HasState )
 import qualified Capability.State              as State
 import           Control.Monad.IO.Class         ( MonadIO(..) )
-import           Data.Acquire                   ( withAcquire )
 import           Data.Aeson.Extra.SingObject    ( SingObject(..) )
 import           Data.Functor
 import           Data.Map.Strict                ( Map )
@@ -193,16 +192,14 @@ smirkServer =
     :<|> sendNamedIrSignalHandler
     :<|> deleteNamedIrSignalHandler
 
-mToHandler :: MkCtx -> forall a . M a -> Servant.Handler a
-mToHandler (acquireSerialPort, mkCtx) act =
-  liftIO . withAcquire acquireSerialPort $ \serialPort ->
-    act `runM` mkCtx serialPort
+mToHandler :: RunWithCtx -> forall a . M a -> Servant.Handler a
+mToHandler runWithCtx = liftIO . runWithCtx . runM
 
-runSmirkServer :: Warp.Settings -> MkCtx -> IO ()
-runSmirkServer warpSettings mkCtx = do
+runSmirkServer :: Warp.Settings -> RunWithCtx -> IO ()
+runSmirkServer warpSettings runWithCtx = do
   putStrLn "Starting webserver"
   Warp.runSettings warpSettings
     . Wai.logStdoutDev
     . Servant.serve pSmirkApi
-    . Servant.hoistServer pSmirkApi (mToHandler mkCtx)
+    . Servant.hoistServer pSmirkApi (mToHandler runWithCtx)
     $ smirkServer
