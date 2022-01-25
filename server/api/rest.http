@@ -39,10 +39,10 @@ GET :host/api/named-signal
 POST :host/api/named-signal/refresh
 
 # Save last received signal as name
-:name = foo
+:name = null
 POST :host/api/named-signal/save-latest-received?name=:name
 
-# Save last received signal as name
+# Save a signal as name
 :name = foo
 PUT :host/api/named-signal/:name
 Content-Type: application/json
@@ -54,7 +54,7 @@ Content-Type: application/json
 }
 
 # Send signal by name
-:name = foo
+:name = null
 POST :host/api/named-signal/:name/send
 
 # Delete signal by name
