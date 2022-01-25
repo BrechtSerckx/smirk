@@ -5,6 +5,7 @@ module Smirk
   ) where
 
 import qualified Control.Concurrent.Lock       as Lock
+import qualified Control.Concurrent.STM        as Stm
 import           Control.Monad.IO.Class         ( MonadIO(..) )
 import           Data.Acquire                   ( mkAcquire
                                                 , withAcquire
@@ -25,6 +26,7 @@ main = do
         (Serial.openSerial serialPortPath serialPortSettings)
         Serial.closeSerial
   serialPortLock <- Lock.new
+  signalMap      <- Stm.newTVarIO mempty
   case cmd of
     Control controlCmd -> withAcquire acquireSerialPort $ \serialPort -> do
       let ctx = Ctx { .. }

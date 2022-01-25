@@ -75,6 +75,7 @@ library
     , text
     , wai-extra
     , aeson-extra
+    , containers
     , stm
 
 executable smirk-server
