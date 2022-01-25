@@ -127,24 +127,19 @@ serialSendRecv cmd = withSerialPort $ \s -> do
     in  go ""
 
 
-expecting :: forall a m . (Monad m, Show a, Eq a) => a -> m a -> m ()
-expecting expected act = do
-  res <- act
-  unless (res == expected)
-    .  error
-    $  "expected: 0x"
-    <> show expected
-    <> ", got: "
-    <> show res
+expecting :: forall a m . (Applicative m, Show a, Eq a) => a -> a -> m a
+expecting expected res = if res == expected
+  then pure res
+  else error $ "expected: " <> show expected <> ", got: " <> show res
 
-ping :: HasSerialPort m => m ()
-ping = expecting ("pong" :: Text) $ serialSendRecv Ping
+ping :: HasSerialPort m => m Text
+ping = expecting ("pong" :: Text) =<< serialSendRecv Ping
 
 version :: HasSerialPort m => m Text
 version = serialSendRecv Version
 
 send :: HasSerialPort m => IrSignal -> m ()
-send = expecting Ok . serialSendRecv . Send
+send = void . expecting Ok <=< serialSendRecv . Send
 
 receive :: HasSerialPort m => m IrSignal
 receive = unInternalIrSignal <$> serialSendRecv Receive
