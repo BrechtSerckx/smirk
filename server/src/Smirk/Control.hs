@@ -74,7 +74,6 @@ data ControlCmd
   = NoOp
   | Ping
   | Version
-  | Add Int
   | Send IrSignal
   | Receive
   deriving stock (Show, Data)
@@ -86,7 +85,6 @@ instance ToJSON ControlCmd where
           NoOp    -> Nothing
           Ping    -> Nothing
           Version -> Nothing
-          Add  i  -> Just $ toJSON i
           Send s  -> Just . toJSON $ InternalIrSignal s
           Receive -> Nothing
     in  object ["cmd" .= type_, "data" .= data_]
@@ -149,9 +147,6 @@ ping = expecting ("pong" :: Text) $ serialSendRecv Ping
 
 version :: HasSerialPort m => m Text
 version = serialSendRecv Version
-
-add :: HasSerialPort m => Int -> m Int
-add = serialSendRecv . Add
 
 send :: HasSerialPort m => IrSignal -> m ()
 send = expecting Ok . serialSendRecv . Send

@@ -65,23 +65,6 @@ StaticJsonDocument<400> version() {
 }
 
 /*
- * ADD
- */
-
-StaticJsonDocument<400> add(int n) {
-  StaticJsonDocument<400> doc;
-  if ( n <= 0) {
-    doc["success"] = "Failure";
-    doc["data"] = "ADD command did not receive a number > 0";
-  } else {
-    n++;
-    doc["success"] = true;
-    doc["data"] = n;
-  }
-  return doc;
-}
-
-/*
  * SENDER
  */
 
@@ -170,9 +153,6 @@ void loop() {
         resp = pong();
       } else if (strcmp(cmd, "Version") == 0) {
         resp = version();
-      } else if (strcmp(cmd, "Add") == 0) {
-        const int n = doc["data"];
-        resp = add(n);
       } else if (strcmp(cmd, "Send") == 0) {
         const uint8_t protocolNum = doc["data"]["protocolNum"];
         const uint32_t value = doc["data"]["value"];

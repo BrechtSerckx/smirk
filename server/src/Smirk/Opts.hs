@@ -33,9 +33,6 @@ pControlCmd = hsubparser $ mconcat
   , command "version"
   $      pure Version
   `info` (fullDesc <> progDesc "Show Smirk Arduino version.")
-  , command "add"
-  $      (Add <$> argument auto mempty)
-  `info` (fullDesc <> progDesc "Add a number on the Smirk Arduino.")
   , command "send"
   $      (do
            signalProtocol <- option auto $ long "protocol"
