@@ -7,7 +7,9 @@ module Smirk.Server
 
 import           Control.Monad.IO.Class         ( MonadIO(..) )
 import           Data.Acquire                   ( withAcquire )
+import           Data.Aeson.Extra.SingObject    ( SingObject(..) )
 import           Data.Proxy                     ( Proxy(..) )
+import           Data.Text                      ( Text )
 import qualified Network.Wai.Handler.Warp      as Warp
 import qualified Network.Wai.Middleware.RequestLogger
                                                as Wai
@@ -21,22 +23,21 @@ import           Smirk.M
 
 
 -- brittany-disable-next-binding
-type SmirkApi
-  =   "api"
-  :>  "signal"
-  :>  (  -- get last received infrared signal
-         Get '[JSON] IrSignal
-    :<|> -- send infrared signal
-         ReqBody '[JSON] IrSignal
-      :> Post '[JSON] ()
-      )
+type SmirkApi = "api" :>
+    -- get last received infrared signal
+    (  "version" :> Get '[JSON] (SingObject "version" Text)
+  :<|> "signal" :> Get '[JSON] IrSignal
+    -- send infrared signal
+  :<|> "signal" :> ReqBody '[JSON] IrSignal :> Post '[JSON] ()
+    )
 
 pSmirkApi :: Proxy SmirkApi
 pSmirkApi = Proxy
 
 smirkServer :: HasSerialPort m => Servant.ServerT SmirkApi m
-smirkServer = getLatestIrSignal :<|> sendIrSignal
+smirkServer = getVersion :<|> getLatestIrSignal :<|> sendIrSignal
  where
+  getVersion        = SingObject <$> version
   getLatestIrSignal = receive
   sendIrSignal      = send
 

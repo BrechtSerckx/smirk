@@ -1,6 +1,8 @@
 
 :host = http://localhost:8765
 
+# Get the currently running version
+GET :host/api/version
 
 # Get the last received IR signal
 # Response body:

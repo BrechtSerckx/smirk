@@ -73,6 +73,7 @@ library
     , aeson
     , text
     , wai-extra
+    , aeson-extra
 
 executable smirk-server
   main-is:             Main.hs
