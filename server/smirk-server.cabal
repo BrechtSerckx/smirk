@@ -56,6 +56,7 @@ library
     Smirk.M
     Smirk.Opts
     Smirk.Server
+    Capability.ReaderTVar
   build-depends:
       base >=4.7 && <5
     , bytestring
@@ -74,6 +75,7 @@ library
     , text
     , wai-extra
     , aeson-extra
+    , stm
 
 executable smirk-server
   main-is:             Main.hs
