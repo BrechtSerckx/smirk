@@ -59,24 +59,34 @@ library
     Capability.ReaderTVar
   build-depends:
       base >=4.7 && <5
+
+      -- data
     , bytestring
-    , serialport
-    , optparse-applicative
-    , resourcet
-    , capability
-    , mtl
-    , transformers
-    , concurrent-extra
-    , servant
-    , servant-server
-    , wai
-    , warp
-    , aeson
     , text
-    , wai-extra
+    , aeson
     , aeson-extra
     , containers
+
+      -- control
+    , mtl
+    , transformers
+    , capability
+    , resourcet
+    , concurrent-extra
     , stm
+
+      -- cli opts
+    , optparse-applicative
+
+      -- webserver
+    , wai
+    , wai-extra
+    , warp
+    , servant
+    , servant-server
+
+      -- serial port
+    , serialport
 
 executable smirk-server
   main-is:             Main.hs

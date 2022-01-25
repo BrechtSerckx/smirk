@@ -14,7 +14,7 @@
     "nixpkgs": {
         "branch": "master",
         "repo": "https://github.com/NixOS/nixpkgs",
-        "rev": "6a5fad6a02ee0a5e22907e6b1f2e4a30d5ba4436",
+        "rev": "7891c655a80dda3458bac240cd69fd709e47d4e6",
         "type": "git"
     }
 }
