@@ -7,7 +7,10 @@ import qualified Data.ByteString.Char8         as BS8
 import qualified Data.ByteString.Lazy          as BSL
 import           Data.Data
 import           Data.Text                      ( Text )
-import           Data.Text.Read
+import qualified Data.Text.Lazy                as TextL
+import qualified Data.Text.Lazy.Builder        as TextL
+import qualified Data.Text.Lazy.Builder.Int    as TextWrite
+import qualified Data.Text.Read                as TextRead
 import           Data.Word
 import           Debug.Trace
 import           GHC.Generics                   ( Generic )
@@ -42,17 +45,20 @@ data IrSignal = IrSignal
 instance FromJSON IrSignal where
   parseJSON = withObject "IrSignal" $ \o -> do
     signalProtocol <- o .: "protocol"
-    signalValue    <- either error fst . hexadecimal <$> o .: "value"
+    signalValue    <- either error fst . TextRead.hexadecimal <$> o .: "value"
     signalBits     <- o .: "bits"
-    signalAddress  <- either error fst . hexadecimal <$> o .: "address"
+    signalAddress  <- either error fst . TextRead.hexadecimal <$> o .: "address"
     pure IrSignal { .. }
 instance ToJSON IrSignal where
   toJSON IrSignal {..} = object
     [ "protocol" .= signalProtocol
-    , "value" .= signalValue
+    , "value" .= hexadecimal signalValue
     , "bits" .= signalBits
-    , "address" .= signalAddress
+    , "address" .= hexadecimal signalAddress
     ]
+   where
+    hexadecimal :: Integral i => i -> Text
+    hexadecimal = TextL.toStrict . TextL.toLazyText . TextWrite.hexadecimal
 
 newtype InternalIrSignal = InternalIrSignal { unInternalIrSignal :: IrSignal }
 instance FromJSON InternalIrSignal where

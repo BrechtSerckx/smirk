@@ -5,6 +5,8 @@ module Smirk.Server
   ( runSmirkServer
   ) where
 
+import           Capability.Reader              ( HasReader )
+import qualified Capability.Reader             as Reader
 import           Capability.State               ( HasState )
 import qualified Capability.State              as State
 import           Control.Monad.IO.Class         ( MonadIO(..) )
@@ -14,6 +16,7 @@ import           Data.Map.Strict                ( Map )
 import qualified Data.Map.Strict               as Map
 import           Data.Proxy                     ( Proxy(..) )
 import           Data.Text                      ( Text )
+import qualified Data.Yaml                     as Yaml
 import qualified Network.Wai.Handler.Warp      as Warp
 import qualified Network.Wai.Middleware.RequestLogger
                                                as Wai
@@ -106,11 +109,16 @@ type PutLatestIrSignalEP
   :> PostNoContent
 
 putLatestIrSignalHandler
-  :: (HasSerialPort m, HasState "signalMap" (Map Text IrSignal) m)
+  :: ( HasSerialPort m
+     , HasState "signalMap" (Map Text IrSignal) m
+     , HasReader "signalMapPath" FilePath m
+     , MonadIO m
+     )
   => Servant.ServerT PutLatestIrSignalEP m
 putLatestIrSignalHandler name = do
   signal <- Control.receive
   State.modify' @"signalMap" $ Map.insert name signal
+  writeSignalMap
   pure NoContent
 
 -- brittany-disable-next-binding
@@ -122,10 +130,14 @@ type PutNamedIrSignal
   :> PutNoContent
 
 putNamedIrSignalHandler
-  :: HasState "signalMap" (Map Text IrSignal) m
+  :: ( HasState "signalMap" (Map Text IrSignal) m
+     , HasReader "signalMapPath" FilePath m
+     , MonadIO m
+     )
   => Servant.ServerT PutNamedIrSignal m
 putNamedIrSignalHandler name signal = do
   State.modify' @"signalMap" $ Map.insert name signal
+  writeSignalMap
   pure NoContent
 
 -- brittany-disable-next-binding
@@ -152,11 +164,26 @@ type DeleteNamedIrSignal
   :> DeleteNoContent
 
 deleteNamedIrSignalHandler
-  :: HasState "signalMap" (Map Text IrSignal) m
+  :: ( HasState "signalMap" (Map Text IrSignal) m
+     , HasReader "signalMapPath" FilePath m
+     , MonadIO m
+     )
   => Servant.ServerT DeleteNamedIrSignal m
 deleteNamedIrSignalHandler name = do
   State.modify' @"signalMap" $ Map.delete name
+  writeSignalMap
   pure NoContent
+
+writeSignalMap
+  :: ( HasState "signalMap" (Map Text IrSignal) m
+     , HasReader "signalMapPath" FilePath m
+     , MonadIO m
+     )
+  => m ()
+writeSignalMap = do
+  signalMap     <- State.get @"signalMap"
+  signalMapPath <- Reader.ask @"signalMapPath"
+  liftIO $ Yaml.encodeFile signalMapPath signalMap
 
 -- * Full API
 
@@ -178,7 +205,11 @@ pSmirkApi :: Proxy SmirkApi
 pSmirkApi = Proxy
 
 smirkServer
-  :: (HasSerialPort m, HasState "signalMap" (Map Text IrSignal) m)
+  :: ( HasSerialPort m
+     , HasState "signalMap" (Map Text IrSignal) m
+     , HasReader "signalMapPath" FilePath m
+     , MonadIO m
+     )
   => Servant.ServerT SmirkApi m
 smirkServer =
   versionHandler

@@ -26,7 +26,9 @@ import           Data.Acquire                   ( mkAcquire
                                                 )
 import           Data.Map.Strict                ( Map )
 import           Data.Text                      ( Text )
+import qualified Data.Yaml                     as Yaml
 import           GHC.Generics                   ( Generic )
+import qualified System.Directory              as Directory
 import qualified System.Hardware.Serialport    as Serial
 
 import           Smirk.Control                  ( IrSignal )
@@ -36,6 +38,7 @@ import           Smirk.Opts
 data Ctx = Ctx
   { serialPort     :: Serial.SerialPort
   , serialPortLock :: Lock
+  , signalMapPath  :: FilePath
   , signalMap      :: TVar (Map Text IrSignal)
   }
   deriving stock Generic
@@ -56,6 +59,10 @@ newtype M a = M { runM :: Ctx -> IO a }
            , HasSink "signalMap" (Map Text IrSignal)
            , HasState "signalMap" (Map Text IrSignal)
            ) via ReaderTVar (Field "signalMap" "ctx" (MonadReader (ReaderT Ctx IO)))
+  deriving ( HasReader "signalMapPath" FilePath
+           , HasSource "signalMapPath" FilePath
+           )
+    via Field "signalMapPath" "ctx" (MonadReader (ReaderT Ctx IO))
 
 type RunWithCtx = forall a . (Ctx -> IO a) -> IO a
 
@@ -65,5 +72,8 @@ mkRunWithCtx Opts {..} = do
         (Serial.openSerial serialPortPath serialPortSettings)
         Serial.closeSerial
   serialPortLock <- Lock.new
-  signalMap      <- Stm.newTVarIO mempty
+  initSignalMap  <- Directory.doesFileExist signalMapPath >>= \case
+    False -> mempty
+    True  -> Yaml.decodeFileThrow signalMapPath
+  signalMap <- Stm.newTVarIO initSignalMap
   pure $ \f -> withAcquire @IO acquireSerialPort $ \serialPort -> f Ctx { .. }

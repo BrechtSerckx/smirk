@@ -66,6 +66,7 @@ library
     , aeson
     , aeson-extra
     , containers
+    , yaml
 
       -- control
     , mtl
@@ -87,6 +88,9 @@ library
 
       -- serial port
     , serialport
+
+      -- system
+    , directory
 
 executable smirk-server
   main-is:             Main.hs

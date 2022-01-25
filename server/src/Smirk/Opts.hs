@@ -75,6 +75,7 @@ data Opts = Opts
   { serialPortSettings :: SerialPortSettings
   , serialPortPath     :: FilePath
   , cmd                :: Cmd
+  , signalMapPath      :: FilePath
   }
 
 pOpts :: Parser Opts
@@ -82,7 +83,9 @@ pOpts = do
   serialPortSettings <- pSerialPortSettings
   serialPortPath     <-
     strOption $ long "port" <> short 'p' <> value "/dev/ttyACM0" <> showDefault
-  cmd <- pCmd
+  cmd           <- pCmd
+  signalMapPath <-
+    strOption $ long "signal-map" <> value "./signal-map.yaml" <> showDefault
   pure Opts { .. }
 
 parseOpts :: IO Opts
