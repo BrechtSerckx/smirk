@@ -4,6 +4,9 @@
 # Get the currently running version
 GET :host/api/version
 
+# Ping
+POST :host/api/ping
+
 # Get the last received IR signal
 # Response body:
 # {

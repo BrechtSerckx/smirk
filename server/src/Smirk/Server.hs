@@ -26,6 +26,7 @@ import           Smirk.M
 type SmirkApi = "api" :>
     -- get last received infrared signal
     (  "version" :> Get '[JSON] (SingObject "version" Text)
+  :<|> "ping" :> Post '[JSON] (SingObject "response" Text)
   :<|> "signal" :> Get '[JSON] IrSignal
     -- send infrared signal
   :<|> "signal" :> ReqBody '[JSON] IrSignal :> Post '[JSON] ()
@@ -35,9 +36,10 @@ pSmirkApi :: Proxy SmirkApi
 pSmirkApi = Proxy
 
 smirkServer :: HasSerialPort m => Servant.ServerT SmirkApi m
-smirkServer = getVersion :<|> getLatestIrSignal :<|> sendIrSignal
+smirkServer = getVersion :<|> sendPing :<|> getLatestIrSignal :<|> sendIrSignal
  where
   getVersion        = SingObject <$> version
+  sendPing          = SingObject <$> ping
   getLatestIrSignal = receive
   sendIrSignal      = send
 
