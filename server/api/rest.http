@@ -1,18 +1,26 @@
 
 :host = http://localhost:8765
 
+#######################
+## General endpoints ##
+#######################
+
 # Get the currently running version
 GET :host/api/version
 
 # Ping
 POST :host/api/ping
 
+############################
+## Raw IrSignal endpoints ##
+############################
+
 # Get the last received IR signal
 # Response body:
 # {
 #   "signal": infrared signal
 # }
-GET :host/api/signal
+GET :host/api/signal/latest-received
 
 # Send a IR signal
 POST :host/api/signal/send

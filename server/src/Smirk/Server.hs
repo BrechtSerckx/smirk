@@ -16,32 +16,77 @@ import qualified Network.Wai.Middleware.RequestLogger
 import           Servant.API
 import qualified Servant.Server                as Servant
 
-import           Smirk.Control
+import qualified Smirk.Control                 as Control
+import           Smirk.Control                  ( IrSignal )
 import           Smirk.Effects.SerialPort
 import           Smirk.M
 
-
+-- * General endpoints
 
 -- brittany-disable-next-binding
-type SmirkApi = "api" :>
-    (  "version" :> Get '[JSON] (SingObject "version" Text)
-  :<|> "ping" :> Post '[JSON] (SingObject "response" Text)
-       -- get last received infrared signal
-  :<|> "signal" :> Get '[JSON] IrSignal
-       -- send infrared signal
-  :<|> "signal" :> "send" :> ReqBody '[JSON] IrSignal :> Post '[JSON] ()
+type VersionEP
+  =  "api"
+  :> "version"
+  :> Get '[JSON] (SingObject "version" Text)
+
+versionHandler :: HasSerialPort m => Servant.ServerT VersionEP m
+versionHandler = SingObject <$> Control.version
+
+-- brittany-disable-next-binding
+type PingEP
+  =  "api"
+  :> "ping"
+  :> Post '[JSON] (SingObject "response" Text)
+
+pingHandler :: HasSerialPort m => Servant.ServerT PingEP m
+pingHandler = SingObject <$> Control.ping
+
+-- * Raw IrSignal endpoints
+
+-- brittany-disable-next-binding
+type GetLatestIrSignalEP
+  =  "api"
+  :> "signal"
+  :> "latest-received"
+  :> Get '[JSON] IrSignal
+
+getLatestIrSignalHandler
+  :: HasSerialPort m => Servant.ServerT GetLatestIrSignalEP m
+getLatestIrSignalHandler = Control.receive
+
+-- brittany-disable-next-binding
+type SendIrSignalEP
+  =  "api"
+  :> "signal"
+  :> "send"
+  :> ReqBody '[JSON] IrSignal
+  :> PostNoContent
+
+sendIrSignalHandler :: HasSerialPort m => Servant.ServerT SendIrSignalEP m
+sendIrSignalHandler irSignal = Control.send irSignal $> NoContent
+
+
+-- * Full API
+
+-- brittany-disable-next-binding
+type SmirkApi
+  = (  VersionEP
+  :<|> PingEP
+  :<|> GetLatestIrSignalEP
+  :<|> SendIrSignalEP
     )
 
 pSmirkApi :: Proxy SmirkApi
 pSmirkApi = Proxy
 
-smirkServer :: HasSerialPort m => Servant.ServerT SmirkApi m
-smirkServer = getVersion :<|> sendPing :<|> getLatestIrSignal :<|> sendIrSignal
- where
-  getVersion        = SingObject <$> version
-  sendPing          = SingObject <$> ping
-  getLatestIrSignal = receive
-  sendIrSignal      = send
+smirkServer
+  :: (HasSerialPort m, HasState "signalMap" (Map Text IrSignal) m)
+  => Servant.ServerT SmirkApi m
+smirkServer =
+  versionHandler
+    :<|> pingHandler
+    :<|> getLatestIrSignalHandler
+    :<|> sendIrSignalHandler
 
 mToHandler :: MkCtx -> forall a . M a -> Servant.Handler a
 mToHandler (acquireSerialPort, mkCtx) act =
