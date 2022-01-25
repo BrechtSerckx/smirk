@@ -24,11 +24,11 @@ import           Smirk.M
 
 -- brittany-disable-next-binding
 type SmirkApi = "api" :>
-    -- get last received infrared signal
     (  "version" :> Get '[JSON] (SingObject "version" Text)
   :<|> "ping" :> Post '[JSON] (SingObject "response" Text)
+       -- get last received infrared signal
   :<|> "signal" :> Get '[JSON] IrSignal
-    -- send infrared signal
+       -- send infrared signal
   :<|> "signal" :> ReqBody '[JSON] IrSignal :> Post '[JSON] ()
     )
 
