@@ -28,8 +28,7 @@ pSerialPortSettings = do
 
 pControlCmd :: Parser ControlCmd
 pControlCmd = hsubparser $ mconcat
-  [ command "no-op" $ pure NoOp `info` (fullDesc <> progDesc "Do nothing.")
-  , command "ping" $ pure Ping `info` (fullDesc <> progDesc "Ping pong.")
+  [ command "ping" $ pure Ping `info` (fullDesc <> progDesc "Ping pong.")
   , command "version"
   $      pure Version
   `info` (fullDesc <> progDesc "Show Smirk Arduino version.")

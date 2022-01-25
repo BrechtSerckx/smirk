@@ -30,7 +30,6 @@ main = do
       let ctx = Ctx { .. }
       flip runM ctx $ do
         res <- case controlCmd of
-          NoOp    -> noOp >> pure "OK"
           Ping    -> ping >> pure "pong"
           Version -> version
           Send s  -> send s >> pure "OK"

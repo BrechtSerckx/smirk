@@ -71,8 +71,7 @@ instance ToJSON InternalIrSignal where
     ]
 
 data ControlCmd
-  = NoOp
-  | Ping
+  = Ping
   | Version
   | Send IrSignal
   | Receive
@@ -82,7 +81,6 @@ instance ToJSON ControlCmd where
   toJSON cmd =
     let type_ = showConstr $ toConstr cmd
         data_ = case cmd of
-          NoOp    -> Nothing
           Ping    -> Nothing
           Version -> Nothing
           Send s  -> Just . toJSON $ InternalIrSignal s
@@ -138,9 +136,6 @@ expecting expected act = do
     <> show expected
     <> ", got: "
     <> show res
-
-noOp :: HasSerialPort m => m ()
-noOp = expecting Ok $ serialSendRecv NoOp
 
 ping :: HasSerialPort m => m ()
 ping = expecting ("pong" :: Text) $ serialSendRecv Ping

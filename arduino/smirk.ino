@@ -31,17 +31,6 @@ void setupSerial() {
 }
 
 /*
- * NOOP
- */
-
-StaticJsonDocument<400> noOp() {
-  StaticJsonDocument<400> doc;
-  doc["success"] = true;
-  doc["data"] = "";
-  return doc;
-}
-
-/*
  * PING
  */
 
@@ -147,9 +136,7 @@ void loop() {
     }
     if (err == DeserializationError::Ok) {
       const char* cmd = doc["cmd"];
-      if (strcmp(cmd, "NoOp") == 0) {
-        resp = noOp();
-      } else if (strcmp(cmd, "Ping") == 0) {
+      if (strcmp(cmd, "Ping") == 0) {
         resp = pong();
       } else if (strcmp(cmd, "Version") == 0) {
         resp = version();
