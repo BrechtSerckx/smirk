@@ -5,9 +5,14 @@ module Smirk.Server
   ( runSmirkServer
   ) where
 
+import           Capability.State               ( HasState )
+import qualified Capability.State              as State
 import           Control.Monad.IO.Class         ( MonadIO(..) )
 import           Data.Acquire                   ( withAcquire )
 import           Data.Aeson.Extra.SingObject    ( SingObject(..) )
+import           Data.Functor
+import           Data.Map.Strict                ( Map )
+import qualified Data.Map.Strict               as Map
 import           Data.Proxy                     ( Proxy(..) )
 import           Data.Text                      ( Text )
 import qualified Network.Wai.Handler.Warp      as Warp
@@ -65,6 +70,94 @@ type SendIrSignalEP
 sendIrSignalHandler :: HasSerialPort m => Servant.ServerT SendIrSignalEP m
 sendIrSignalHandler irSignal = Control.send irSignal $> NoContent
 
+-- * Named IrSignal endpoints
+
+-- brittany-disable-next-binding
+type GetNamedIrSignalsEP
+  =  "api"
+  :> "named-signal"
+  :> Get '[JSON] (Map Text IrSignal)
+
+getNamedIrSignalsHandler
+  :: HasState "signalMap" (Map Text IrSignal) m
+  => Servant.ServerT GetNamedIrSignalsEP m
+getNamedIrSignalsHandler = State.get @"signalMap"
+
+-- brittany-disable-next-binding
+type RefreshNamedIrSignalsEP
+  =  "api"
+  :> "named-signal"
+  :> "refresh"
+  :> PostNoContent
+
+refreshNamedIrSignalsHandler
+  :: HasState "signalMap" (Map Text IrSignal) m
+  => Servant.ServerT RefreshNamedIrSignalsEP m
+refreshNamedIrSignalsHandler = do
+  signalMap <- undefined -- FIXME
+  State.put @"signalMap" signalMap
+  pure NoContent
+
+-- brittany-disable-next-binding
+type PutLatestIrSignalEP
+  =  "api"
+  :> "named-signal"
+  :> "save-latest-received"
+  :> QueryParam' '[Required] "name" Text
+  :> PostNoContent
+
+putLatestIrSignalHandler
+  :: (HasSerialPort m, HasState "signalMap" (Map Text IrSignal) m)
+  => Servant.ServerT PutLatestIrSignalEP m
+putLatestIrSignalHandler name = do
+  signal <- Control.receive
+  State.modify' @"signalMap" $ Map.insert name signal
+  pure NoContent
+
+-- brittany-disable-next-binding
+type PutNamedIrSignal
+  =  "api"
+  :> "named-signal"
+  :> Capture "name" Text
+  :> ReqBody '[JSON] IrSignal
+  :> PutNoContent
+
+putNamedIrSignalHandler
+  :: HasState "signalMap" (Map Text IrSignal) m
+  => Servant.ServerT PutNamedIrSignal m
+putNamedIrSignalHandler name signal = do
+  State.modify' @"signalMap" $ Map.insert name signal
+  pure NoContent
+
+-- brittany-disable-next-binding
+type SendNamedIrSignal
+  =  "api"
+  :> "named-signal"
+  :> Capture "name" Text
+  :> "send"
+  :> PostNoContent
+
+sendNamedIrSignalHandler
+  :: (HasSerialPort m, HasState "signalMap" (Map Text IrSignal) m)
+  => Servant.ServerT SendNamedIrSignal m
+sendNamedIrSignalHandler name =
+  State.gets @"signalMap" (Map.lookup name) >>= \case
+    Just irSignal -> Control.send irSignal $> NoContent
+    Nothing       -> error "No signal with that name."
+
+-- brittany-disable-next-binding
+type DeleteNamedIrSignal
+  =  "api"
+  :> "named-signal"
+  :> Capture "name" Text
+  :> DeleteNoContent
+
+deleteNamedIrSignalHandler
+  :: HasState "signalMap" (Map Text IrSignal) m
+  => Servant.ServerT DeleteNamedIrSignal m
+deleteNamedIrSignalHandler name = do
+  State.modify' @"signalMap" $ Map.delete name
+  pure NoContent
 
 -- * Full API
 
@@ -74,6 +167,12 @@ type SmirkApi
   :<|> PingEP
   :<|> GetLatestIrSignalEP
   :<|> SendIrSignalEP
+  :<|> GetNamedIrSignalsEP
+  :<|> RefreshNamedIrSignalsEP
+  :<|> PutLatestIrSignalEP
+  :<|> PutNamedIrSignal
+  :<|> SendNamedIrSignal
+  :<|> DeleteNamedIrSignal
     )
 
 pSmirkApi :: Proxy SmirkApi
@@ -87,6 +186,12 @@ smirkServer =
     :<|> pingHandler
     :<|> getLatestIrSignalHandler
     :<|> sendIrSignalHandler
+    :<|> getNamedIrSignalsHandler
+    :<|> refreshNamedIrSignalsHandler
+    :<|> putLatestIrSignalHandler
+    :<|> putNamedIrSignalHandler
+    :<|> sendNamedIrSignalHandler
+    :<|> deleteNamedIrSignalHandler
 
 mToHandler :: MkCtx -> forall a . M a -> Servant.Handler a
 mToHandler (acquireSerialPort, mkCtx) act =
