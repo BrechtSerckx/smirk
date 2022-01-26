@@ -1,4 +1,4 @@
-args@{ compiler ? "ghc902"}:
+args@{ compiler ? "ghc8107"}:
 let pkgs = import ./pkgs.nix {inherit compiler;};
 in pkgs.haskell.packages."${compiler}".shellFor {
   packages = p: [ p.smirk-server ];

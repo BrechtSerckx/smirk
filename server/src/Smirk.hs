@@ -19,14 +19,16 @@ main = do
   opts@Opts {..} <- parseOpts
   case cmd of
     Control controlCmd -> do
-      runWithCtx :: RunWithCtx <- mkRunWithCtx opts
-      runWithCtx . runM $ do
-        res <- case controlCmd of
-          Ping    -> ping >> pure "pong"
-          Version -> version
-          Send s  -> send s >> pure "OK"
-          Receive -> Text.pack . show <$> receive
-        liftIO $ Text.putStrLn res
+      (acquireSerialPort, mkCtx) <- mkRunWithCtx opts
+      withAcquire acquireSerialPort $ \serialPort ->
+        let ctx = mkCtx serialPort
+        in  flip runM ctx $ do
+              res <- case controlCmd of
+                Ping    -> ping >> pure "pong"
+                Version -> version
+                Send s  -> send s >> pure "OK"
+                Receive -> Text.pack . show <$> receive
+              liftIO $ Text.putStrLn res
     Serve warpSettings -> do
       runWithCtx :: RunWithCtx <- mkRunWithCtx opts
       runSmirkServer warpSettings runWithCtx

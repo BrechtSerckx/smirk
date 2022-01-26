@@ -228,7 +228,9 @@ smirkServer =
     :<|> deleteNamedIrSignalHandler
 
 mToHandler :: RunWithCtx -> forall a . M a -> Servant.Handler a
-mToHandler runWithCtx = liftIO . runWithCtx . runM
+mToHandler (acquireSerialPort, mkCtx) act =
+  liftIO . withAcquire acquireSerialPort $ \serialPort ->
+    let ctx = mkCtx serialPort in act `runM` ctx
 
 runSmirkServer :: Warp.Settings -> RunWithCtx -> IO ()
 runSmirkServer warpSettings runWithCtx = do

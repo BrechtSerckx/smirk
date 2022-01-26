@@ -1,10 +1,11 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE ImpredicativeTypes #-}
+{-# LANGUAGE RankNTypes #-}
 module Smirk.M
   ( Ctx(..)
   , M(..)
   , RunWithCtx
   , mkRunWithCtx
+  , withAcquire
   ) where
 
 import           Capability.Accessors           ( Field(..) )
@@ -21,7 +22,8 @@ import           Control.Concurrent.STM         ( TVar )
 import qualified Control.Concurrent.STM        as Stm
 import           Control.Monad.IO.Class         ( MonadIO )
 import           Control.Monad.Trans.Reader     ( ReaderT(..) )
-import           Data.Acquire                   ( mkAcquire
+import           Data.Acquire                   ( Acquire
+                                                , mkAcquire
                                                 , withAcquire
                                                 )
 import           Data.Map.Strict                ( Map )
@@ -64,7 +66,21 @@ newtype M a = M { runM :: Ctx -> IO a }
            )
     via Field "signalMapPath" "ctx" (MonadReader (ReaderT Ctx IO))
 
-type RunWithCtx = forall a . (Ctx -> IO a) -> IO a
+-- type RunWithCtx = forall a . (Ctx -> IO a) -> IO a
+
+-- mkRunWithCtx :: Opts -> IO RunWithCtx
+-- mkRunWithCtx Opts {..} = do
+--   let acquireSerialPort = mkAcquire
+--         (Serial.openSerial serialPortPath serialPortSettings)
+--         Serial.closeSerial
+--   serialPortLock <- Lock.new
+--   initSignalMap  <- Directory.doesFileExist signalMapPath >>= \case
+--     False -> mempty
+--     True  -> Yaml.decodeFileThrow signalMapPath
+--   signalMap <- Stm.newTVarIO initSignalMap
+--   pure $ \f -> withAcquire @IO acquireSerialPort $ \serialPort -> f Ctx { .. }
+
+type RunWithCtx = (Acquire Serial.SerialPort, Serial.SerialPort -> Ctx)
 
 mkRunWithCtx :: Opts -> IO RunWithCtx
 mkRunWithCtx Opts {..} = do
@@ -76,4 +92,4 @@ mkRunWithCtx Opts {..} = do
     False -> mempty
     True  -> Yaml.decodeFileThrow signalMapPath
   signalMap <- Stm.newTVarIO initSignalMap
-  pure $ \f -> withAcquire @IO acquireSerialPort $ \serialPort -> f Ctx { .. }
+  pure (acquireSerialPort, \serialPort -> Ctx { .. })

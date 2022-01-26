@@ -18,8 +18,8 @@ let
         capability =
           superh.callHackage "capability" "0.5.0.0" { };
         # for capability above
-        lens =
-          superh.callHackage "lens" "5.0.1" {};
+        # lens =
+        #   superh.callHackage "lens" "5.0.1" {};
       };
     in {
       haskell = super.haskell // {
