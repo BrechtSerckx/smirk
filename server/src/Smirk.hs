@@ -1,6 +1,3 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE ImpredicativeTypes #-}
-{-# LANGUAGE UndecidableInstances #-}
 module Smirk
   ( main
   ) where
@@ -19,10 +16,8 @@ main = do
   opts@Opts {..} <- parseOpts
   case cmd of
     Control controlCmd -> do
-      (acquireSerialPort, mkCtx) <- mkRunWithCtx opts
-      withAcquire acquireSerialPort $ \serialPort ->
-        let ctx = mkCtx serialPort
-        in  flip runM ctx $ do
+      RunWithCtx runWithCtx <- mkRunWithCtx opts
+      runWithCtx . runM $ do
               res <- case controlCmd of
                 Ping    -> ping >> pure "pong"
                 Version -> version
