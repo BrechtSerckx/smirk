@@ -18,16 +18,17 @@ data RegisterError = AlreadyRegistered
 data DeregisterError = NotFound | Unauthorized
 
 class Monad m => MonadRegister m where
-  registerMate :: MateId -> Mate -> m (Maybe RegisterError)
+  registerMate :: MateId -> Mate -> (Mate -> Bool) -> m (Maybe RegisterError)
   deregisterMate :: MateId -> (Mate -> Bool) -> m (Maybe DeregisterError)
 
 instance MonadRegister SmirkM where
-  registerMate mateId mate = do
+  registerMate mateId mate canOverwrite = do
     Env {mates} <- ask
     liftIO . atomically . stateTVar mates $ \m ->
       case m Map.!? mateId of
         Nothing -> (Nothing, Map.insert mateId mate m)
-        Just _ -> (Just AlreadyRegistered, m)
+        Just n | canOverwrite n -> (Nothing, Map.insert mateId mate m)
+        Just n | otherwise -> (Just AlreadyRegistered, m)
   deregisterMate mateId isAuthorized = do
     Env {mates} <- ask
     liftIO . atomically . stateTVar mates $ \m ->

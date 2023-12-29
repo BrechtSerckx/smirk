@@ -74,6 +74,7 @@ void registerMaster(String serverAddress) {
   StaticJsonDocument<1024> requestDoc;
   requestDoc["mateId"] = WiFi.getHostname();
   requestDoc["baseUrl"] = "http://" + WiFi.localIP().toString();
+  if (registered) requestDoc["accessToken"] = accessToken;
   String requestPayload;
   serializeJson(requestDoc, requestPayload);
   int httpCode = http.POST(requestPayload);

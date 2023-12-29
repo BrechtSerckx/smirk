@@ -30,9 +30,15 @@ server =
     { register =
         \RegisterData {..} -> do
           $logInfo [qq|Registering mate: $mateId|]
-          accessToken <- genAccessToken
+          accessToken <- maybe genAccessToken pure mAccessToken
           let mate = Mate {..}
-          mErr <- registerMate mateId mate
+          mErr <-
+            registerMate
+              mateId
+              mate
+              ( \Mate {accessToken = accessToken'} ->
+                  Just accessToken' == mAccessToken
+              )
           case mErr of
             Just AlreadyRegistered ->
               throwM
