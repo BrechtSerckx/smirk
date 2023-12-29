@@ -2,10 +2,12 @@
 // Boilerplate for injecting strings from macros
 #define ST(A) #A
 #define STR(A) ST(A)
+#define PrefsNamespace "smirk"
 
 #include <Arduino.h>
 #include <ESPmDNS.h>
 #include <HTTPClient.h>
+#include <Preferences.h>
 #include <WiFiManager.h>
 
 #include <Smirk.h>
@@ -17,7 +19,9 @@ MockIRReceiver irReceiver = MockIRReceiver(&logger, mockIRSignal);
 
 // WiFiManager
 WiFiManager wm;
-WiFiManagerParameter serverAddress("server_address", "Server Address", "", 50);
+WiFiManagerParameter* serverAddressParam;
+
+Preferences preferences;
 
 void setupSerial() {
   Serial.begin(SERIAL_BAUD_RATE);
@@ -49,7 +53,15 @@ void setupWiFi() {
   wm.setDarkMode(true);
 
   // Add server address parameter
-  wm.addParameter(&serverAddress);
+  preferences.begin(PrefsNamespace, true);
+  serverAddressParam = new WiFiManagerParameter("server_address", "Server Address", preferences.getString("server_address","").c_str(), 50);
+  preferences.end();
+  wm.addParameter(serverAddressParam);
+  wm.setSaveParamsCallback([]() {
+    preferences.begin(PrefsNamespace, false);
+    preferences.putString("server_address", serverAddressParam->getValue());
+    preferences.end();
+  });
   
   // Automatically connect using saved credentials,
   // if connection fails, it starts an access point with the specified name
@@ -73,8 +85,10 @@ void registerMaster() {
   HTTPClient http;
 
   Serial.print("[HTTP] begin...\n");
-  // Split server address in two, as the preprocessor can't seem to handle `://`?
-  http.begin(STR(SERVER_PROTOCOL) "://" STR(SERVER_ADDRESS) "/register");
+  preferences.begin(PrefsNamespace, true);
+  String serverAddress = preferences.getString("server_address","");
+  preferences.end();
+  http.begin(serverAddress + "/register");
 
   Serial.print("[HTTP] POST...\n");
   // start connection and send HTTP header
