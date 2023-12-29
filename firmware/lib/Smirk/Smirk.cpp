@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <vector>
+#include <IRsend.h>
 
 class Logger {
 public:
@@ -69,6 +70,19 @@ public:
                const uint16_t hz) {
     this->logger->log("Sending raw IR signal.");
     return;
+  };
+};
+class ESPIRSender : public IRSender {
+private:
+  IRsend *irSend;
+public:
+  ESPIRSender(IRsend *_irSend) {
+    this->irSend = _irSend;
+  };
+  void sendRaw(const uint16_t buf[],
+               const uint16_t len,
+               const uint16_t hz) {
+    this->irSend->sendRaw(buf, len, hz);
   };
 };
 
