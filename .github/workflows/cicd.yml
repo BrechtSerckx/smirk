@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+
+      - uses: cachix/install-nix-action@v22
+        with:
+          nix_path: nixpkgs=channel:nixos-22.11
+
+      - run: nix-build --version
+
+      - run: echo NIXPKGS_ALLOW_UNFREE=1 >> "$GITHUB_ENV"
+
+      - run: nix-shell --run "echo OK"
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      # Install PlatformIO using pip, as the one from nix-shell does not seem
+      # to work in CI.
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Build PlatformIO code
+        run: ./scripts/ci-pio.sh

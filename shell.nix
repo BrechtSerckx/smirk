@@ -1,26 +1,14 @@
-args@{ compiler ? "ghc8107"}:
-let pkgs = import ./pkgs.nix {inherit compiler;};
-in pkgs.haskell.packages."${compiler}".shellFor {
-  packages = p: [ p.smirk-server ];
+{ pkgs ? import (import ./nix/sources.nix).nixpkgs { } }:
+pkgs.mkShell {
   buildInputs = with pkgs; [
     # nix
     niv
     nixfmt
-    # arduino
-    arduino-mk
-    arduino-core-unwrapped
-    picocom
-    # haskell
-    haskellPackages.cabal-install
-    haskellPackages.brittany
-    haskellPackages.ghcid
-    haskellPackages.hlint
+
+    # embedded
+    platformio
+
+    # ci
+    act
   ];
-  shellHook = with pkgs; ''
-    cat > arduino/Base.mk << EOF
-    ARDUINO_DIR = ${arduino-core-unwrapped}/share/arduino
-    MONITOR_CMD = picocom
-    include ${arduino-mk}/Arduino.mk
-    EOF
-  '';
 }
