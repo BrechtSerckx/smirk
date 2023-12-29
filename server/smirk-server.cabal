@@ -80,9 +80,12 @@ library
     import:           language
     exposed-modules:
       Smirk
+      Smirk.Env
       Smirk.Prelude
+      Smirk.SmirkM
     build-depends:
         base ^>=4.16.4.0
+      , mtl
     hs-source-dirs:   src
 
 executable smirk-server
