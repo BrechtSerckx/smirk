@@ -11,7 +11,7 @@ class RawIRSignal : public IRSignal {
   const uint16_t hz;
 
  public:
-  RawIRSignal(const std::vector<uint16_t> _buf,
+  RawIRSignal(const std::vector<uint16_t> &_buf,
               const uint16_t _hz);
 
   void send(IRSender *sender);

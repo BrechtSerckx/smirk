@@ -4,5 +4,5 @@
 
 class Logger {
 public:
-  virtual void log(String msg);
+  virtual void log(const String &msg);
  };

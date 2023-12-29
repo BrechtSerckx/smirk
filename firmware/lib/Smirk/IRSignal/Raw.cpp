@@ -5,7 +5,7 @@
 
 #include <IRSignal/Raw.h>
 
-RawIRSignal::RawIRSignal(const std::vector<uint16_t> _buf,
+RawIRSignal::RawIRSignal(const std::vector<uint16_t> &_buf,
                          const uint16_t _hz)
   : buf(_buf),
     hz(_hz) {};

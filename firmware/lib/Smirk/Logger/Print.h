@@ -9,5 +9,5 @@ private:
   Print *print;
 public:
   PrintLogger(Print *_print);
-  void log(const String msg) ;
+  void log(const String &msg) ;
 };

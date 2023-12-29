@@ -5,6 +5,6 @@
 PrintLogger::PrintLogger(Print *_print)
   : print(_print) {
 }
-void PrintLogger::log(const String msg) {
+void PrintLogger::log(const String &msg) {
   this->print->println(msg);
 };

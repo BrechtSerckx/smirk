@@ -11,6 +11,6 @@ private:
   Logger *logger;
 public:
   LogIRSender(Logger *_logger);
-  void sendRaw(const std::vector<uint16_t> _buf,
+  void sendRaw(const std::vector<uint16_t> &_buf,
                const uint16_t hz);
 };
