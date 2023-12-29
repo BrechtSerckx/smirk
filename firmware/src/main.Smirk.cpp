@@ -33,6 +33,7 @@ void setupHostName() {
 
 // WiFiManager
 WiFiManager wm;
+WiFiManagerParameter serverAddress("server_address", "Server Address", "", 50);
 
 void setupWiFi() {
   // explicitly set mode, esp defaults to STA+AP
@@ -46,6 +47,9 @@ void setupWiFi() {
 
   // Invert theme, dark
   wm.setDarkMode(true);
+
+  // Add server address parameter
+  wm.addParameter(&serverAddress);
   
   // Automatically connect using saved credentials,
   // if connection fails, it starts an access point with the specified name
