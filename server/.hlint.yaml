@@ -21,6 +21,8 @@
 
 # Ignore some builtin hints
 - ignore: {name: Use newtype instead of data}
+# Monad-logger + quasiquotes gives this error
+- ignore: {name: "Parse error: on input `|]'"}
 # - ignore: {name: Use const, within: SpecialModule} # Only within certain modules
 
 

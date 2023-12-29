@@ -95,8 +95,10 @@ library
       , aeson
       , containers
       , exceptions
+      , interpolatedstring-perl6
       , mtl
       , MonadRandom
+      , monad-logger
       , servant
       , servant-server
       , stm

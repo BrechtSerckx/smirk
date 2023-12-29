@@ -22,14 +22,14 @@ server ::
   ( MonadRandom m,
     MonadRegister m,
     MonadThrow m,
-    MonadIO m
+    MonadLogger m
   ) =>
   Routes (AsServerT m)
 server =
   Routes
     { register =
         \RegisterData {..} -> do
-          liftIO . putStrLn $ "Registering node: " <> show nodeId
+          $logInfo [qq|Registering node: $nodeId|]
           accessToken <- genAccessToken
           let node = Node {..}
           mErr <- registerNode nodeId node
@@ -40,15 +40,15 @@ server =
                   { errBody = "There is already a node registered with id ???"
                   }
             Nothing -> pure ()
-          liftIO $ putStrLn "Success!"
+          $logInfo [qq|Registered node: $nodeId|]
           return node,
       deregister =
         \DeregisterData {..} -> do
-          liftIO . putStrLn $ "Deregistering node: " <> show nodeId
+          $logInfo [qq|Deregistering node: $nodeId|]
           mErr <- deregisterNode nodeId accessToken
           case mErr of
             Just NotFound -> throwM err404
             Just Unauthorized -> throwM err403
             Nothing -> pure ()
-          liftIO $ putStrLn "Success!"
+          $logInfo [qq|Deregistered node: $nodeId|]
     }

@@ -24,7 +24,7 @@ server ::
     MonadRandom m,
     MonadRegister m,
     MonadThrow m,
-    MonadIO m
+    MonadLogger m
   ) =>
   Routes (AsServerT m)
 server =

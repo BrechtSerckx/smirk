@@ -7,6 +7,10 @@ module Smirk.SmirkM
 where
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad.Logger
+  ( MonadLogger (..),
+    runStderrLoggingT,
+  )
 import Control.Monad.Reader
   ( MonadReader,
     ReaderT,
@@ -25,3 +29,7 @@ newtype SmirkM a = SmirkM {runSmirkM :: ReaderT Env IO a}
       MonadThrow,
       MonadRandom
     )
+
+instance MonadLogger SmirkM where
+  monadLoggerLog loc src lvl msg =
+    runStderrLoggingT $ monadLoggerLog loc src lvl msg
