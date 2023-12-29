@@ -89,6 +89,7 @@ library
       Smirk.Captain.Register.Server
       Smirk.Captain.Server
       Smirk.Captain.SmirkM
+      Smirk.Mate.Api
       Smirk.Types
     build-depends:
         base ^>=4.16.4.0
