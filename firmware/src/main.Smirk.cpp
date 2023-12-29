@@ -1,15 +1,13 @@
 #include <Arduino.h>
-#include <Smirk.cpp>
 
-Logger logger;
-IRSender irSender;
-IRReceiver irReceiver;
+#include <Smirk.h>
+
+PrintLogger logger = PrintLogger(&Serial);
+LogIRSender irSender = LogIRSender(&logger);
+RawIRSignal mockIRSignal = RawIRSignal({}, 1000);
+MockIRReceiver irReceiver = MockIRReceiver(&logger, mockIRSignal);
 
 void setup() {
-  logger = PrintLogger(&Serial);
-  irSender = LogIRSender(&logger);
-  RawIRSignal mockIRSignal = RawIRSignal({}, 1000);
-  irReceiver = MockIRReceiver(&logger, mockIRSignal);
 }
 
 void loop() {
