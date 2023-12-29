@@ -1,3 +1,8 @@
+
+// Boilerplate for injecting strings from macros
+ #define ST(A) #A
+#define STR(A) ST(A)
+
 #include <Arduino.h>
 #include <WiFiManager.h>
 
@@ -33,7 +38,7 @@ void setupWiFi(bool reset) {
   bool res;
   // res = wm.autoConnect(); // auto generated AP name from chipid
   // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
-  res = wm.autoConnect("AutoConnectAP","password"); // password protected ap
+  res = wm.autoConnect(STR(AP_SSID),STR(AP_PASSWORD)); // password protected ap
 
   if(!res) {
     Serial.println("Failed to connect");
