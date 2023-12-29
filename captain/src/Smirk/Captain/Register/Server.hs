@@ -11,11 +11,11 @@ import Smirk.Captain.Register.Class
   ( DeregisterError (..),
     MonadRegister,
     RegisterError (..),
-    deregisterNode,
-    registerNode,
+    deregisterMate,
+    registerMate,
   )
 import Smirk.Prelude
-import Smirk.Types (Node (..), genAccessToken)
+import Smirk.Types (Mate (..), genAccessToken)
 
 server ::
   forall m.
@@ -31,8 +31,8 @@ server =
         \RegisterData {..} -> do
           $logInfo [qq|Registering mate: $mateId|]
           accessToken <- genAccessToken
-          let mate = Node {..}
-          mErr <- registerNode mateId mate
+          let mate = Mate {..}
+          mErr <- registerMate mateId mate
           case mErr of
             Just AlreadyRegistered ->
               throwM
@@ -45,7 +45,7 @@ server =
       deregister =
         \DeregisterData {..} -> do
           $logInfo [qq|Deregistering mate: $mateId|]
-          mErr <- deregisterNode mateId accessToken
+          mErr <- deregisterMate mateId accessToken
           case mErr of
             Just NotFound -> throwM err404
             Just Unauthorized -> throwM err403

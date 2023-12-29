@@ -16,10 +16,10 @@ import qualified Servant.Client as Servant
     mkClientEnv,
   )
 import Smirk.Prelude
-import Smirk.Types (Node, NodeId)
+import Smirk.Types (Mate, MateId)
 
 data Env = Env
-  { mates :: TVar (Map NodeId Node),
+  { mates :: TVar (Map MateId Mate),
     servantClientEnv :: Servant.ClientEnv
   }
 

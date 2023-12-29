@@ -11,24 +11,24 @@ import qualified Data.Map.Strict as Map
 import Smirk.Captain.Env (Env (..))
 import Smirk.Captain.SmirkM
 import Smirk.Prelude
-import Smirk.Types (AccessToken, Node (..), NodeId)
+import Smirk.Types (AccessToken, Mate (..), MateId)
 
 data RegisterError = AlreadyRegistered
 
 data DeregisterError = NotFound | Unauthorized
 
 class Monad m => MonadRegister m where
-  registerNode :: NodeId -> Node -> m (Maybe RegisterError)
-  deregisterNode :: NodeId -> AccessToken -> m (Maybe DeregisterError)
+  registerMate :: MateId -> Mate -> m (Maybe RegisterError)
+  deregisterMate :: MateId -> AccessToken -> m (Maybe DeregisterError)
 
 instance MonadRegister SmirkM where
-  registerNode mateId mate = do
+  registerMate mateId mate = do
     Env {mates} <- ask
     liftIO . atomically . stateTVar mates $ \m ->
       case m Map.!? mateId of
         Nothing -> (Nothing, Map.insert mateId mate m)
         Just _ -> (Just AlreadyRegistered, m)
-  deregisterNode mateId accessToken' = do
+  deregisterMate mateId accessToken' = do
     Env {mates} <- ask
     liftIO . atomically . stateTVar mates $ \m ->
       case m Map.!? mateId of

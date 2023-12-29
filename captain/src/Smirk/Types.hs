@@ -1,6 +1,6 @@
 module Smirk.Types
-  ( NodeId,
-    Node (..),
+  ( MateId,
+    Mate (..),
     AccessToken,
     genAccessToken,
   )
@@ -10,7 +10,7 @@ import qualified Data.Char as Char
 import qualified Data.Text as Text
 import Smirk.Prelude
 
-type NodeId = Text
+type MateId = Text
 
 type AccessToken = Text
 
@@ -24,6 +24,6 @@ genAccessToken =
     . Text.pack
     <$> getRandomRs ('A', 'z')
 
-data Node = Node {accessToken :: AccessToken}
+data Mate = Mate {accessToken :: AccessToken}
   deriving stock (Generic)
   deriving anyclass (ToJSON)
