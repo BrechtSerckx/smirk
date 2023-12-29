@@ -17,9 +17,9 @@ void setupSerial() {
   Serial.begin(SERIAL_BAUD_RATE);
 }
 
-  // WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
-  // it is a good practice to make sure your code sets wifi mode how you want it.
 void setupWiFi() {
+  // explicitly set mode, esp defaults to STA+AP
+  WiFi.mode(WIFI_STA);
 
   // WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wm;
