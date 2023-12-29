@@ -4,6 +4,7 @@ module Smirk.Captain.SmirkM
     ask,
     liftIO,
     runClient,
+    MonadMateClient,
   )
 where
 
@@ -41,12 +42,15 @@ instance MonadLogger SmirkM where
   monadLoggerLog loc src lvl msg =
     runStderrLoggingT $ monadLoggerLog loc src lvl msg
 
-runClient :: Servant.BaseUrl -> Servant.ClientM a -> SmirkM a
-runClient baseUrl act = do
-  Env {servantClientEnv} <- ask
-  eRes <-
-    liftIO $
-      Servant.runClientM act servantClientEnv {Servant.baseUrl = baseUrl}
-  case eRes of
-    Left e -> throwM e
-    Right a -> return a
+class MonadMateClient m where
+  runClient :: Servant.BaseUrl -> Servant.ClientM a -> m a
+
+instance MonadMateClient SmirkM where
+  runClient baseUrl act = do
+    Env {servantClientEnv} <- ask
+    eRes <-
+      liftIO $
+        Servant.runClientM act servantClientEnv {Servant.baseUrl = baseUrl}
+    case eRes of
+      Left e -> throwM e
+      Right a -> return a

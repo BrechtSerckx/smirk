@@ -1,4 +1,8 @@
-module Smirk.Mate.Client () where
+module Smirk.Mate.Client
+  ( getVersion,
+    doSend,
+  )
+where
 
 import Servant.Client.Core (RunClient)
 import Servant.Client.Generic
