@@ -74,7 +74,8 @@ void registerMaster() {
   Serial.print("[HTTP] POST...\n");
   // start connection and send HTTP header
   http.addHeader("Content-Type", "application/json");
-  int httpCode = http.POST("{ \"nodeId\" : \"" STR(NODE_ID) "\" }");
+  const String hostname = WiFi.getHostname();
+  int httpCode = http.POST("{ \"nodeId\" : \"" + hostname + "\" }");
 
   // httpCode will be negative on error
   if(httpCode > 0) {
@@ -94,9 +95,9 @@ void registerMaster() {
 }
 
 void startMDNS() {
-  const char* hostname = "SmirkMate-" STR(NODE_ID);
+  const String hostname = WiFi.getHostname();
   if (MDNS.begin(hostname)) {
-    Serial.println(String("MDNS responder started on ") + hostname);
+    Serial.println("MDNS responder started on " + hostname);
   }
 }
 
