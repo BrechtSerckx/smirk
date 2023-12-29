@@ -52,6 +52,9 @@ void setupWiFi() {
   // Invert theme, dark
   wm.setDarkMode(true);
 
+  // Define params on custom page
+  wm.setParamsPage(true);
+
   // Add server address parameter
   preferences.begin(PrefsNamespace, true);
   serverAddressParam = new WiFiManagerParameter("server_address", "Server Address", preferences.getString("server_address","").c_str(), 50);
