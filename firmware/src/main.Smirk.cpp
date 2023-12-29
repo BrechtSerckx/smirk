@@ -43,6 +43,9 @@ void setupWiFi() {
   if(RESET_WIFI) {
     wm.resetSettings();
   }
+
+  // Invert theme, dark
+  wm.setDarkMode(true);
   
   // Automatically connect using saved credentials,
   // if connection fails, it starts an access point with the specified name
