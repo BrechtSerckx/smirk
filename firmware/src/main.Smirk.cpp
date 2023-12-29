@@ -49,10 +49,9 @@ void setupWiFi() {
     wm.resetSettings();
   }
 
-  // Invert theme, dark
+  //WM config
+  wm.setTitle("SMIRK");
   wm.setDarkMode(true);
-
-  // Define params on custom page
   wm.setParamsPage(true);
 
   // Add server address parameter
