@@ -5,6 +5,10 @@
 //  * handle missing pages / 404s
 //
 
+// Boilerplate for injecting strings from macros
+#define ST(A) #A
+#define STR(A) ST(A)
+
 #include <Arduino.h>
 #ifdef ESP32
 #include <WiFi.h>
@@ -17,8 +21,8 @@
 
 AsyncWebServer server(80);
 
-const char* ssid = "YOUR_SSID";
-const char* password = "YOUR_PASSWORD";
+const char* ssid = STR(SMIRK_WIFI_SSID);
+const char* password = STR(SMIRK_WIFI_PASSWORD);
 
 const char* PARAM_MESSAGE = "message";
 
@@ -29,6 +33,8 @@ void notFound(AsyncWebServerRequest *request) {
 void setup() {
 
     Serial.begin(9600);
+    Serial.print("SSID: ");
+    Serial.println(ssid);
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
     if (WiFi.waitForConnectResult() != WL_CONNECTED) {
