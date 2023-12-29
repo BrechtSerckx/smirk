@@ -53,6 +53,8 @@ void setupWiFi() {
   wm.setTitle("SMIRK");
   wm.setDarkMode(true);
   wm.setParamsPage(true);
+  wm.showInfoErase(true);
+  wm.showInfoUpdate(false);
 
   // Add server address parameter
   preferences.begin(PrefsNamespace, true);
