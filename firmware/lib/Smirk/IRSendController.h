@@ -12,11 +12,8 @@ class IRSendController {
   // Disable copy, as instances contain a mutex.
   IRSendController(const IRSendController&) = delete;
 
- protected:
-  void sendSignal(IRSignal &irSignal);
-
  public:
-  IRSendController(IRSender *_irSender);
-  void sendSignalLocking(IRSignal &irSignal);
+ IRSendController(IRSender *_irSender);
+  void sendSignal(IRSignal &irSignal);
 };
  
