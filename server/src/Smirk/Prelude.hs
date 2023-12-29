@@ -5,6 +5,7 @@ import Control.Monad.Catch as Export
   ( MonadThrow,
     throwM,
   )
+import Control.Monad.IO.Class as Export (MonadIO, liftIO)
 import Control.Monad.Random as Export
   ( MonadRandom,
     getRandom,
