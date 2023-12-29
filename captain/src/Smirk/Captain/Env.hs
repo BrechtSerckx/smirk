@@ -1,4 +1,4 @@
-module Smirk.Env
+module Smirk.Captain.Env
   ( Env (..),
     mkEnv,
   )
@@ -14,10 +14,10 @@ import Smirk.Prelude
 import Smirk.Types (Node, NodeId)
 
 data Env = Env
-  { nodes :: TVar (Map NodeId Node)
+  { mates :: TVar (Map NodeId Node)
   }
 
 mkEnv :: IO Env
 mkEnv = do
-  nodes <- newTVarIO Map.empty
+  mates <- newTVarIO Map.empty
   pure Env {..}

@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-cd firmware
+cd mate
 
 # Get all environments
 envs=$(pio project config --json-output \

@@ -1,5 +1,5 @@
 cabal-version:      2.4
-name:               smirk-server
+name:               smirk-captain
 version:            0.1.0.0
 
 -- A short (one-line) description of the package.
@@ -80,15 +80,15 @@ common opts
 library
     import:           language
     exposed-modules:
-      Smirk
-      Smirk.Api
-      Smirk.Env
       Smirk.Prelude
-      Smirk.Register.Api
-      Smirk.Register.Class
-      Smirk.Register.Server
-      Smirk.Server
-      Smirk.SmirkM
+      Smirk.Captain
+      Smirk.Captain.Api
+      Smirk.Captain.Env
+      Smirk.Captain.Register.Api
+      Smirk.Captain.Register.Class
+      Smirk.Captain.Register.Server
+      Smirk.Captain.Server
+      Smirk.Captain.SmirkM
       Smirk.Types
     build-depends:
         base ^>=4.16.4.0
@@ -107,10 +107,10 @@ library
       , warp
     hs-source-dirs:   src
 
-executable smirk-server
+executable smirk-captain
     import:           language
     main-is:          Main.hs
     build-depends:
         base ^>=4.16.4.0,
-        smirk-server
+        smirk-captain
     hs-source-dirs:   app

@@ -1,4 +1,4 @@
-module Smirk.SmirkM
+module Smirk.Captain.SmirkM
   ( SmirkM,
     runSmirkM,
     ask,
@@ -16,7 +16,7 @@ import Control.Monad.Reader
     ReaderT,
     ask,
   )
-import Smirk.Env (Env (..))
+import Smirk.Captain.Env (Env (..))
 import Smirk.Prelude
 
 newtype SmirkM a = SmirkM {runSmirkM :: ReaderT Env IO a}

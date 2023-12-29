@@ -1,4 +1,4 @@
-module Smirk.Server (app) where
+module Smirk.Captain.Server (app) where
 
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader
@@ -12,12 +12,12 @@ import Servant.Server.Generic
   ( AsServerT,
     genericServeT,
   )
-import Smirk.Api (Routes (..))
-import Smirk.Env (Env (..))
+import Smirk.Captain.Api (Routes (..))
+import Smirk.Captain.Env (Env (..))
+import Smirk.Captain.Register.Class (MonadRegister)
+import qualified Smirk.Captain.Register.Server as Register
+import Smirk.Captain.SmirkM
 import Smirk.Prelude
-import Smirk.Register.Class (MonadRegister)
-import qualified Smirk.Register.Server
-import Smirk.SmirkM
 
 server ::
   ( Monad m,
@@ -30,7 +30,7 @@ server ::
 server =
   Routes
     { version = getVersion,
-      registerApi = toServant Smirk.Register.Server.server
+      registerApi = toServant Register.server
     }
 
 getVersion :: Monad m => m ()

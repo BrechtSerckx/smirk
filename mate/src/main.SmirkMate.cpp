@@ -10,7 +10,7 @@
 #include <Preferences.h>
 #include <WiFiManager.h>
 
-#include <Smirk.h>
+#include <SmirkMate.h>
 
 PrintLogger logger = PrintLogger(&Serial);
 LogIRSender irSender = LogIRSender(&logger);
@@ -37,7 +37,7 @@ void setupHostName() {
   Serial.println(macAddress);
   macAddress.replace(":","");
   macAddress = macAddress.substring(6);
-  const String hostname = "SmirkNode-" + macAddress;
+  const String hostname = "SmirkMate-" + macAddress;
   Serial.print("Setting hostname to: ");
   Serial.println(hostname);
   WiFi.setHostname(hostname.c_str());
@@ -52,7 +52,7 @@ void deregisterMaster(String serverAddress) {
 
   const String requestPayload =
         String("{") +
-        "\"nodeId\" : \"" + WiFi.getHostname() + "\"" +
+        "\"mateId\" : \"" + WiFi.getHostname() + "\"" +
         "\"accessToken\" : \"" + accessToken + "\"" +
         "}";
   int httpCode = http.POST(requestPayload);
@@ -71,7 +71,7 @@ void registerMaster(String serverAddress) {
   http.begin(serverAddress + "/register");
   http.addHeader("Content-Type", "application/json");
 
-  const String requestPayload = String("{ \"nodeId\" : \"") + WiFi.getHostname() + "\" }";
+  const String requestPayload = String("{ \"mateId\" : \"") + WiFi.getHostname() + "\" }";
   int httpCode = http.POST(requestPayload);
 
   if(httpCode != HTTP_CODE_OK) {

@@ -1,4 +1,4 @@
-module Smirk.Api
+module Smirk.Captain.Api
   ( Api,
     Routes (..),
   )
@@ -6,11 +6,11 @@ where
 
 import GHC.Generics (Generic)
 import Servant.API
-import qualified Smirk.Register.Api
+import qualified Smirk.Captain.Register.Api as Register
 
 data Routes mode = Routes
   { version :: mode :- "version" :> Get '[JSON] (),
-    registerApi :: mode :- "register" :> Smirk.Register.Api.Api
+    registerApi :: mode :- "register" :> Register.Api
   }
   deriving (Generic)
 

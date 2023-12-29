@@ -1,4 +1,4 @@
-module Smirk.Register.Api
+module Smirk.Captain.Register.Api
   ( Routes (..),
     Api,
     RegisterData (..),
@@ -11,12 +11,12 @@ import Smirk.Prelude
 import Smirk.Types (AccessToken, Node, NodeId)
 
 data RegisterData = RegisterData
-  {nodeId :: NodeId}
+  {mateId :: NodeId}
   deriving stock (Generic)
   deriving anyclass (FromJSON)
 
 data DeregisterData = DeregisterData
-  {nodeId :: NodeId, accessToken :: AccessToken}
+  {mateId :: NodeId, accessToken :: AccessToken}
   deriving stock (Generic)
   deriving anyclass (FromJSON)
 

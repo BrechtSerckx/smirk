@@ -6,7 +6,7 @@ let
   cleanSource = pkgs.haskell-nix.haskellLib.cleanGit;
 in pkgs.haskell-nix.project {
   src = pkgs.haskell-nix.haskellLib.cleanGit {
-    name = "smirk-server";
-    src = ./server;
+    name = "smirk-captain";
+    src = ./captain;
   };
 }

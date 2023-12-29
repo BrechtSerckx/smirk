@@ -4,7 +4,7 @@ let
   haskellNix = import sources.haskellNix { };
   pkgs = import haskellNix.sources.nixpkgs-unstable haskellNix.nixpkgsArgs;
 in project.shellFor {
-  packages = ps: with ps; [ smirk-server ];
+  packages = ps: with ps; [ smirk-captain ];
 
   withHoogle = true;
 
