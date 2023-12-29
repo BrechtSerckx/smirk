@@ -37,7 +37,7 @@ void setupHostName() {
   Serial.println(macAddress);
   macAddress.replace(":","");
   macAddress = macAddress.substring(6);
-  const String hostname = "SmirkMate-" + macAddress;
+  const String hostname = "SmirkNode-" + macAddress;
   Serial.print("Setting hostname to: ");
   Serial.println(hostname);
   WiFi.setHostname(hostname.c_str());
