@@ -6,5 +6,5 @@
 
 class IRReceiver {
 public:
-  virtual RawIRSignal receiveRaw();
+  virtual RawIRSignal receiveRaw() = 0;
 };
