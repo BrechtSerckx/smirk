@@ -4,5 +4,5 @@ class IRSender;
 
 class IRSignal {
   public:
-    virtual void send(IRSender *sender);
+    virtual void send(IRSender *sender) = 0;
 };
