@@ -3,6 +3,7 @@ module Smirk.Captain.SmirkM
     runSmirkM,
     ask,
     liftIO,
+    runClient,
   )
 where
 
@@ -15,6 +16,12 @@ import Control.Monad.Reader
   ( MonadReader,
     ReaderT,
     ask,
+  )
+import qualified Servant.Client as Servant
+  ( BaseUrl,
+    ClientEnv (..),
+    ClientM,
+    runClientM,
   )
 import Smirk.Captain.Env (Env (..))
 import Smirk.Prelude
@@ -33,3 +40,13 @@ newtype SmirkM a = SmirkM {runSmirkM :: ReaderT Env IO a}
 instance MonadLogger SmirkM where
   monadLoggerLog loc src lvl msg =
     runStderrLoggingT $ monadLoggerLog loc src lvl msg
+
+runClient :: Servant.BaseUrl -> Servant.ClientM a -> SmirkM a
+runClient baseUrl act = do
+  Env {servantClientEnv} <- ask
+  eRes <-
+    liftIO $
+      Servant.runClientM act servantClientEnv {Servant.baseUrl = baseUrl}
+  case eRes of
+    Left e -> throwM e
+    Right a -> return a

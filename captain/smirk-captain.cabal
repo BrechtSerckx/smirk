@@ -90,17 +90,21 @@ library
       Smirk.Captain.Server
       Smirk.Captain.SmirkM
       Smirk.Mate.Api
+      Smirk.Mate.Client
       Smirk.Types
     build-depends:
         base ^>=4.16.4.0
       , aeson
       , containers
       , exceptions
+      , http-client
       , interpolatedstring-perl6
       , mtl
       , MonadRandom
       , monad-logger
       , servant
+      , servant-client
+      , servant-client-core
       , servant-server
       , stm
       , text
