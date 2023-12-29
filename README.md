@@ -23,15 +23,15 @@ Smart InfraRed Kit
 
 ## Architecture
 
-- Master server written in Haskell. User interaction will happen through this server, and it will contain a database.
-- One or more nodes. These are relatively dumb, and only execute commands from the server. They do have a barebones web interface in order to connect to a network and pair with a master.
-- The master e.g. runs in a docker container in the network.
-- Nodes run in the same network as their master.
-- Nodes need to pair to a master. 
+- Server written in Haskell. User interaction will happen through this server, and it will contain a database.
+- One or more nodes. These are relatively dumb, and only execute commands from the server. They do have a barebones web interface in order to connect to a network and pair with the server.
+- The server e.g. runs in a docker container in the network.
+- Nodes run in the same network as their server.
+- Nodes need to pair to a server. 
 
 ## Pairing
 
-For pairing, the node and master exchange data so that the node is connected to the right master, and so that only the master node can send commands to the node.
-First the node first needs to know about the master. The IP address of the master is entered by the user, possibly from mDNS search.
-Then the node registers itself to the master, possibly involving a pairing code that's shown on both the node and master web UI.
-Then the master sends a secret to the node. The master will send this secret with on each command to the node, so the node can verify that the sender really is the master.
+For pairing, the node and server exchange data so that the node is connected to the right server, and so that only the server node can send commands to the node.
+First the node first needs to know about the server. The IP address of the server is entered by the user, possibly from mDNS search.
+Then the node registers itself to the server, possibly involving a pairing code that's shown on both the node and server web UI.
+Then the server sends a secret to the node. The server will send this secret with on each command to the node, so the node can verify that the sender really is the server.
