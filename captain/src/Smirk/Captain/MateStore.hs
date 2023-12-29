@@ -6,7 +6,7 @@ module Smirk.Captain.MateStore
 where
 
 import Control.Concurrent.STM (atomically)
-import Control.Concurrent.STM.TVar (stateTVar)
+import Control.Concurrent.STM.TVar (readTVarIO, stateTVar)
 import qualified Data.Map.Strict as Map
 import Smirk.Captain.Env (Env (..))
 import Smirk.Captain.SmirkM
@@ -18,10 +18,15 @@ data InsertError = AlreadyPresent
 data RemoveError = NotFound | Forbidden
 
 class Monad m => MonadMateStore m where
+  lookup :: MateId -> m (Maybe Mate)
   insert :: MateId -> Mate -> (Mate -> Bool) -> m (Maybe InsertError)
   remove :: MateId -> (Mate -> Bool) -> m (Maybe RemoveError)
 
 instance MonadMateStore SmirkM where
+  lookup mateId = do
+    Env {mates} <- ask
+    liftIO $ Map.lookup mateId <$> readTVarIO mates
+
   insert mateId mate canBeOverwritten = do
     Env {mates} <- ask
     liftIO . atomically . stateTVar mates $ \m ->

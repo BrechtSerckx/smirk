@@ -18,6 +18,7 @@ import Servant.Server.Generic
 import Smirk.Captain.Api (Routes (..))
 import Smirk.Captain.Env (Env (..))
 import Smirk.Captain.MateStore (MonadMateStore)
+import qualified Smirk.Captain.MateStore as MateStore
 import qualified Smirk.Captain.Pair.Server as Pair
 import Smirk.Captain.SmirkM
 import qualified Smirk.Mate.Client as Mate
@@ -30,8 +31,6 @@ server ::
     MonadMateStore m,
     MonadThrow m,
     MonadLogger m,
-    MonadReader Env m,
-    MonadIO m,
     MonadMateClient m
   ) =>
   Routes (AsServerT m)
@@ -45,17 +44,15 @@ server =
 getVersion :: Monad m => m ()
 getVersion = return ()
 
--- FIXME: do this properly
 sendSignal ::
-  (MonadIO m, MonadReader Env m, MonadThrow m, MonadMateClient m) =>
+  (MonadMateStore m, MonadThrow m, MonadMateClient m) =>
   MateId ->
   () ->
   m ()
 sendSignal mateId payload = do
-  Env {mates} <- ask
-  mMate <- Map.lookup mateId <$> liftIO (readTVarIO mates)
+  mMate <- MateStore.lookup mateId
   mate <- maybe (throwM err404) pure mMate
-  runClient undefined $ Mate.doSend Nothing payload
+  runClient (baseUrl mate) $ Mate.doSend Nothing payload
 
 app :: Env -> Application
 app env = genericServeT (liftIO . flip runReaderT env . runSmirkM) server
