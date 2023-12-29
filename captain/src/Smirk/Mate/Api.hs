@@ -6,10 +6,16 @@ where
 
 import GHC.Generics (Generic)
 import Servant.API
+import Smirk.Prelude
 
 data Routes mode = Routes
   { version :: mode :- "version" :> Get '[JSON] (),
-    send :: mode :- "send" :> ReqBody '[JSON] () :> Post '[JSON] ()
+    send ::
+      mode
+        :- "send"
+          :> Header' '[Strict] "Authorization" Text
+          :> ReqBody '[JSON] ()
+          :> Post '[JSON] ()
   }
   deriving (Generic)
 
