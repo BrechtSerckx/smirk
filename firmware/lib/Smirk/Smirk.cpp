@@ -8,8 +8,7 @@ class RawIRSignal;
 
 class IRSender {
 public:
-  virtual void sendRaw(const uint16_t buf[],
-                       const uint16_t len,
+  virtual void sendRaw(const std::vector<uint16_t> _buf,
                        const uint16_t hz);
 };
 
@@ -26,18 +25,16 @@ public:
 class RawIRSignal : public IRSignal {
 private:
   const std::vector<uint16_t> buf;
-  const uint16_t len;
   const uint16_t hz;
 public:
-  RawIRSignal(const uint16_t _buf[],
-              const uint16_t _len,
+  // std::vector<uint16_t>(_buf, _buf + _len)
+  RawIRSignal(const std::vector<uint16_t> _buf,
               const uint16_t _hz)
-    : buf(std::vector<uint16_t>(_buf, _buf + _len)),
-      len(_len),
+    : buf(_buf),
       hz(_hz) {
   };
   void send(IRSender *sender) {
-    sender->sendRaw(&this->buf[0], this->len, this->hz);
+    sender->sendRaw(this->buf, this->hz);
   };
 };
 
@@ -48,13 +45,13 @@ public:
   LogIRSender(Logger *_logger) {
     this->logger = _logger;
   };
-  void sendRaw(const uint16_t buf[],
-               const uint16_t len,
+  void sendRaw(const std::vector<uint16_t> _buf,
                const uint16_t hz) {
     this->logger->log("Sending raw IR signal.");
     return;
   };
 };
+
 class ESPIRSender : public IRSender {
 private:
   IRsend *irSend;
@@ -62,10 +59,9 @@ public:
   ESPIRSender(IRsend *_irSend) {
     this->irSend = _irSend;
   };
-  void sendRaw(const uint16_t buf[],
-               const uint16_t len,
+  void sendRaw(const std::vector<uint16_t> &buf,
                const uint16_t hz) {
-    this->irSend->sendRaw(buf, len, hz);
+    this->irSend->sendRaw(&buf[0], buf.size(), hz);
   };
 };
 
