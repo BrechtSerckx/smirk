@@ -23,6 +23,10 @@ WiFiManagerParameter* serverAddressParam;
 
 Preferences preferences;
 
+// Register
+String accessToken = "";
+bool registered = false;
+
 void setupSerial() {
   Serial.begin(SERIAL_BAUD_RATE);
 }
@@ -108,7 +112,17 @@ void registerMaster() {
     // file found at server
     if(httpCode == HTTP_CODE_OK) {
       String payload = http.getString();
-      Serial.println(payload);
+      Serial.println(payload); // FIXME: remove
+      DynamicJsonDocument doc(1024);
+      deserializeJson(doc, payload);
+      JsonObject obj = doc.as<JsonObject>();
+      const char* newAccessToken = obj["accessToken"];
+      if (newAccessToken) {
+        accessToken = String(newAccessToken);
+        registered = true;
+      } else {
+        Serial.println("Unexpected response: " + payload);
+      }
     }
   } else {
     Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpCode).c_str());
@@ -132,6 +146,10 @@ void bindServerCallback() {
   wm.server->on("/index", HTTP_GET, handleRoot);
 
   wm.server->on("/send", HTTP_POST, []() {
+    String authHeader = wm.server->header("Authorization");
+    if (registered == false || authHeader != accessToken) {
+      wm.server->send(403, "text/plain", "Invalid access token.");
+    }
     if (wm.server->hasArg("plain") == false) {
       wm.server->send(400, "text/plain", "No payload.");
     } else {
