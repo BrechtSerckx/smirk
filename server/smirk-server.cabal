@@ -83,13 +83,22 @@ library
       Smirk.Api
       Smirk.Env
       Smirk.Prelude
+      Smirk.Register.Api
+      Smirk.Register.Class
+      Smirk.Register.Server
       Smirk.Server
       Smirk.SmirkM
+      Smirk.Types
     build-depends:
         base ^>=4.16.4.0
+      , aeson
+      , containers
+      , exceptions
       , mtl
+      , MonadRandom
       , servant
       , servant-server
+      , stm
       , wai
       , warp
     hs-source-dirs:   src
