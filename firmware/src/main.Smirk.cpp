@@ -129,10 +129,26 @@ void handleRoot() {
 }
 
 void bindServerCallback() {
-  wm.server->on("/index", handleRoot);
+  wm.server->on("/index", HTTP_GET, handleRoot);
 
-  wm.server->on("/inline", []() {
-    wm.server->send(200, "text/plain", "this works as well");
+  wm.server->on("/send", HTTP_POST, []() {
+    if (wm.server->hasArg("plain") == false) {
+      wm.server->send(400, "text/plain", "No payload.");
+    } else {
+      String requestBody = wm.server->arg("plain");
+      Serial.println("Received POST request body:");
+      Serial.println(requestBody);
+      DynamicJsonDocument doc(1024);
+      deserializeJson(doc, requestBody);
+      JsonObject obj = doc.as<JsonObject>();
+      RawIRSignal* signal = RawIRSignal::decodeJson(obj);
+      if (signal == nullptr) {
+        wm.server->send(400, "text/plain", "Unable to decode IR signal.");
+      } else {
+        signal->send(irSender);
+        wm.server->send(200, "text/plain", "Done.");
+      }
+    }
   });
 }
 

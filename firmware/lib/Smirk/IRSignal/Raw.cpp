@@ -20,5 +20,11 @@ RawIRSignal* RawIRSignal::decodeJson(JsonObject obj) {
     buf.push_back(e.as<int>());
   }
   uint16_t hz = obj["hz"];
-  return new RawIRSignal(buf, hz);
+  if (hz == 0) {
+    return nullptr;
+  } else if (buf.size() == 0) {
+    return nullptr;
+  } else {
+    return new RawIRSignal(buf, hz);
+  }
 }
