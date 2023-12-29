@@ -39,10 +39,6 @@ void setupHostName() {
   WiFi.setHostname(hostname.c_str());
 }
 
-// preferences.begin(PrefsNamespace, true);
-// String serverAddress = preferences.getString("server_address","");
-// preferences.end();
-
 void deregisterMaster(String serverAddress, String accessToken) {
   Serial.printf("Registering to: %s\n", serverAddress.c_str());
 
@@ -120,16 +116,17 @@ void setupWiFi() {
 
   // Add server address parameter
   preferences.begin(PrefsNamespace, true);
-  String serverAddress = preferences.getString("server_address","");
+  String serverAddress = preferences.getString("server_address",String());
   preferences.end();
   serverAddressParam = new WiFiManagerParameter("server_address", "Server Address", serverAddress.c_str(), 50);
   wm.addParameter(serverAddressParam);
   wm.setSaveParamsCallback([]() {
     const String newServerAddress = serverAddressParam->getValue();
     preferences.begin(PrefsNamespace, false);
-    const String oldServerAddress = preferences.getString("server_address");
-    const String accessToken = preferences.getString("access_token", "");
-    if (oldServerAddress != newServerAddress) preferences.putString("server_address", serverAddressParam->getValue());
+    const String oldServerAddress = preferences.getString("server_address", String());
+    const String accessToken = preferences.getString("access_token", String());
+    if (oldServerAddress != newServerAddress)
+      preferences.putString("server_address", serverAddressParam->getValue());
     preferences.end();
     if (oldServerAddress != newServerAddress) {
       if (accessToken != "") deregisterMaster(oldServerAddress, accessToken);
@@ -172,7 +169,7 @@ void bindServerCallback() {
   wm.server->on("/send", HTTP_POST, []() {
     String authHeader = wm.server->header("Authorization");
     preferences.begin(PrefsNamespace, false);
-    const String accessToken = preferences.getString("access_token", "");
+    const String accessToken = preferences.getString("access_token", String());
     preferences.end();
     if (accessToken == "" || authHeader != accessToken) {
       wm.server->send(403, "text/plain", "Invalid access token.");
@@ -209,9 +206,9 @@ void setup() {
   setupSerial();
   setupHostName();
   setupWiFi();
-  preferences.begin(PrefsNamespace, false);
-  const String serverAddress = preferences.getString("server_address","");
-  const String accessToken = preferences.getString("access_token", "");
+  preferences.begin(PrefsNamespace, true);
+  const String serverAddress = preferences.getString("server_address",String());
+  const String accessToken = preferences.getString("access_token", String());
   preferences.end();
   if (serverAddress != "") registerMaster(serverAddress, accessToken);
   startMDNS();
