@@ -16,8 +16,6 @@
 
 #include <HTTPClient.h>
 
-#define USE_SERIAL Serial
-
 WiFiMulti wifiMulti;
 
 /*
@@ -56,15 +54,15 @@ const char* password = STR(SMIRK_WIFI_PASSWORD);
 
 void setup() {
 
-    USE_SERIAL.begin(9600);
+    Serial.begin(SERIAL_BAUD_RATE);
 
-    USE_SERIAL.println();
-    USE_SERIAL.println();
-    USE_SERIAL.println();
+    Serial.println();
+    Serial.println();
+    Serial.println();
 
     for(uint8_t t = 4; t > 0; t--) {
-        USE_SERIAL.printf("[SETUP] WAIT %d...\n", t);
-        USE_SERIAL.flush();
+        Serial.printf("[SETUP] WAIT %d...\n", t);
+        Serial.flush();
         delay(1000);
     }
 
@@ -78,27 +76,27 @@ void loop() {
 
         HTTPClient http;
 
-        USE_SERIAL.print("[HTTP] begin...\n");
+        Serial.print("[HTTP] begin...\n");
         // configure traged server and url
         //http.begin("https://www.howsmyssl.com/a/check", ca); //HTTPS
         http.begin("http://example.com/index.html"); //HTTP
 
-        USE_SERIAL.print("[HTTP] GET...\n");
+        Serial.print("[HTTP] GET...\n");
         // start connection and send HTTP header
         int httpCode = http.GET();
 
         // httpCode will be negative on error
         if(httpCode > 0) {
             // HTTP header has been send and Server response header has been handled
-            USE_SERIAL.printf("[HTTP] GET... code: %d\n", httpCode);
+            Serial.printf("[HTTP] GET... code: %d\n", httpCode);
 
             // file found at server
             if(httpCode == HTTP_CODE_OK) {
                 String payload = http.getString();
-                USE_SERIAL.println(payload);
+                Serial.println(payload);
             }
         } else {
-            USE_SERIAL.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+            Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
         }
 
         http.end();

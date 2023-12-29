@@ -7,8 +7,8 @@ LogIRSender irSender = LogIRSender(&logger);
 RawIRSignal mockIRSignal = RawIRSignal({}, 1000);
 MockIRReceiver irReceiver = MockIRReceiver(&logger, mockIRSignal);
 
-setupSerial() {
-  Serial.begin(9600);
+void setupSerial() {
+  Serial.begin(SERIAL_BAUD_RATE);
 }
 
 void setup() {

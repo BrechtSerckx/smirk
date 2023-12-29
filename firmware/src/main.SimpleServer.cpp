@@ -32,7 +32,7 @@ void notFound(AsyncWebServerRequest *request) {
 
 void setup() {
 
-    Serial.begin(9600);
+    Serial.begin(SERIAL_BAUD_RATE);
     Serial.print("SSID: ");
     Serial.println(ssid);
     WiFi.mode(WIFI_STA);
