@@ -10,8 +10,8 @@ RawIRSignal::RawIRSignal(const std::vector<uint16_t> &_buf,
   : buf(_buf),
     hz(_hz) {};
 
-void RawIRSignal::send(IRSender *sender) {
-  sender->sendRaw(this->buf, this->hz);
+void RawIRSignal::send(IRSender &sender) {
+  sender.sendRaw(this->buf, this->hz);
 };
 
 RawIRSignal RawIRSignal::decodeJson(JsonObject obj) {

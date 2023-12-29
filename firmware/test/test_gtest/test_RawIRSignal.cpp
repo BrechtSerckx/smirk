@@ -39,7 +39,7 @@ TEST(IRSignal, senderMechanism)
   uint16_t hz = 1000;
   RawIRSignal mockIRSignal = RawIRSignal(buf, hz);
   MockIRSender irSender = MockIRSender();
-  mockIRSignal.send(&irSender);
+  mockIRSignal.send(irSender);
   
   std::list<std::tuple<std::vector<uint16_t>, uint16_t>> expectedSignalsSent
     = { std::make_tuple(buf, hz)};

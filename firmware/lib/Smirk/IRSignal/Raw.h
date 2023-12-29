@@ -14,7 +14,7 @@ class RawIRSignal : public IRSignal {
   RawIRSignal(const std::vector<uint16_t> &_buf,
               const uint16_t _hz);
 
-  void send(IRSender *sender);
+  void send(IRSender &sender);
 
   static RawIRSignal decodeJson(JsonObject obj);
 };
