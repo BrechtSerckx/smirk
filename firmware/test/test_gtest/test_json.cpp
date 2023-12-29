@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
+#include "IRSignal/Raw.h"
+
 TEST(Json, Example)
 {
   DynamicJsonDocument doc(1024);
@@ -16,3 +18,16 @@ TEST(Json, Example)
   EXPECT_EQ(std::floor((float) obj["data"][0] * 100.0) / 100.0, 48.75);
   EXPECT_EQ(std::floor((float) obj["data"][1] * 100.0) / 100.0, 2.3);
  }
+
+TEST(Json, DecodeRawSignal)
+{
+  DynamicJsonDocument doc(1024);
+  std::string input =
+    "{\"type\":\"raw\",\"hz\":42,\"buf\":[12,13,14,15]}";
+  deserializeJson(doc, input);
+  JsonObject obj = doc.as<JsonObject>();
+  RawIRSignal res = RawIRSignal::decodeJson(obj);
+  EXPECT_EQ(res.hz, 42);
+  EXPECT_EQ(res.buf[0], 12);
+  EXPECT_EQ(res.buf[1], 13);
+}
