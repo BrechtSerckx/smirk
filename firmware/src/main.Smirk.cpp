@@ -43,6 +43,58 @@ void setupHostName() {
   WiFi.setHostname(hostname.c_str());
 }
 
+void deregisterMaster(String serverAddress) {
+  Serial.printf("Registering to: %s\n", serverAddress.c_str());
+
+  HTTPClient http;
+  http.begin(serverAddress + "/deregister");
+  http.addHeader("Content-Type", "application/json");
+
+  const String requestPayload =
+        String("{") +
+        "\"nodeId\" : \"" + WiFi.getHostname() + "\"" +
+        "\"accessToken\" : \"" + accessToken + "\"" +
+        "}";
+  int httpCode = http.POST(requestPayload);
+
+  if(httpCode /= HTTP_CODE_OK) {
+    Serial.printf("Deregistering failed: %s\n", http.errorToString(httpCode).c_str());
+    return;
+  }
+  http.end();
+}
+
+void registerMaster(String serverAddress) {
+  Serial.printf("Registering to: %s\n", serverAddress.c_str());
+
+  HTTPClient http;
+  http.begin(serverAddress + "/register");
+  http.addHeader("Content-Type", "application/json");
+
+  const String requestPayload = String("{ \"nodeId\" : \"") + WiFi.getHostname() + "\" }";
+  int httpCode = http.POST(requestPayload);
+
+  if(httpCode /= HTTP_CODE_OK) {
+    Serial.printf("Registering failed: %s\n", http.errorToString(httpCode).c_str());
+    return;
+  }
+
+  String responsePayload = http.getString();
+  Serial.println(responsePayload); // FIXME: remove
+  DynamicJsonDocument doc(1024);
+  deserializeJson(doc, responsePayload);
+  JsonObject obj = doc.as<JsonObject>();
+  const char* newAccessToken = obj["accessToken"];
+  if (newAccessToken) {
+    accessToken = String(newAccessToken);
+    registered = true;
+  } else {
+    Serial.println("Unexpected response: " + responsePayload);
+  }
+
+  http.end();
+}
+
 void setupWiFi() {
   // explicitly set mode, esp defaults to STA+AP
   WiFi.mode(WIFI_STA);
@@ -66,9 +118,15 @@ void setupWiFi() {
   preferences.end();
   wm.addParameter(serverAddressParam);
   wm.setSaveParamsCallback([]() {
+    const String newServerAddress = serverAddressParam->getValue();
     preferences.begin(PrefsNamespace, false);
-    preferences.putString("server_address", serverAddressParam->getValue());
+    const String oldServerAddress = preferences.getString("server_address");
+    if (oldServerAddress != newServerAddress) preferences.putString("server_address", serverAddressParam->getValue());
     preferences.end();
+    if (oldServerAddress != newServerAddress) {
+      if (registered) deregisterMaster(oldServerAddress);
+      if (newServerAddress != "") registerMaster(newServerAddress);
+    }
   });
   
   // Automatically connect using saved credentials,
@@ -87,48 +145,6 @@ void setupWiFi() {
     //if you get here you have connected to the WiFi    
     Serial.println("connected...yeey :)");
   }
-}
-
-void registerMaster() {
-  HTTPClient http;
-
-  Serial.print("[HTTP] begin...\n");
-  preferences.begin(PrefsNamespace, true);
-  String serverAddress = preferences.getString("server_address","");
-  preferences.end();
-  http.begin(serverAddress + "/register");
-
-  Serial.print("[HTTP] POST...\n");
-  // start connection and send HTTP header
-  http.addHeader("Content-Type", "application/json");
-  const String hostname = WiFi.getHostname();
-  int httpCode = http.POST("{ \"nodeId\" : \"" + hostname + "\" }");
-
-  // httpCode will be negative on error
-  if(httpCode > 0) {
-    // HTTP header has been send and Server response header has been handled
-    Serial.printf("[HTTP] POST... code: %d\n", httpCode);
-
-    // file found at server
-    if(httpCode == HTTP_CODE_OK) {
-      String payload = http.getString();
-      Serial.println(payload); // FIXME: remove
-      DynamicJsonDocument doc(1024);
-      deserializeJson(doc, payload);
-      JsonObject obj = doc.as<JsonObject>();
-      const char* newAccessToken = obj["accessToken"];
-      if (newAccessToken) {
-        accessToken = String(newAccessToken);
-        registered = true;
-      } else {
-        Serial.println("Unexpected response: " + payload);
-      }
-    }
-  } else {
-    Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpCode).c_str());
-  }
-
-  http.end();
 }
 
 void startMDNS() {
@@ -182,7 +198,10 @@ void setup() {
   setupSerial();
   setupHostName();
   setupWiFi();
-  registerMaster();
+  preferences.begin(PrefsNamespace, false);
+  String serverAddress = preferences.getString("server_address","");
+  preferences.end();
+  if (serverAddress != "") registerMaster(serverAddress);
   startMDNS();
   startServer();
 }
