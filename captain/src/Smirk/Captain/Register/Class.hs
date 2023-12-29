@@ -19,7 +19,7 @@ data DeregisterError = NotFound | Unauthorized
 
 class Monad m => MonadRegister m where
   registerMate :: MateId -> Mate -> m (Maybe RegisterError)
-  deregisterMate :: MateId -> AccessToken -> m (Maybe DeregisterError)
+  deregisterMate :: MateId -> (Mate -> Bool) -> m (Maybe DeregisterError)
 
 instance MonadRegister SmirkM where
   registerMate mateId mate = do
@@ -28,10 +28,10 @@ instance MonadRegister SmirkM where
       case m Map.!? mateId of
         Nothing -> (Nothing, Map.insert mateId mate m)
         Just _ -> (Just AlreadyRegistered, m)
-  deregisterMate mateId accessToken' = do
+  deregisterMate mateId isAuthorized = do
     Env {mates} <- ask
     liftIO . atomically . stateTVar mates $ \m ->
       case m Map.!? mateId of
         Nothing -> (Just NotFound, m)
-        Just n | accessToken n /= accessToken' -> (Just Unauthorized, m)
+        Just n | isAuthorized n -> (Just Unauthorized, m)
         Just n | otherwise -> (Nothing, Map.delete mateId m)

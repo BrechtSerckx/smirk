@@ -45,7 +45,10 @@ server =
       deregister =
         \DeregisterData {..} -> do
           $logInfo [qq|Deregistering mate: $mateId|]
-          mErr <- deregisterMate mateId accessToken
+          mErr <-
+            deregisterMate
+              mateId
+              (\Mate {accessToken = accessToken'} -> accessToken' == accessToken)
           case mErr of
             Just NotFound -> throwM err404
             Just Unauthorized -> throwM err403
