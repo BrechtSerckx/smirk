@@ -14,7 +14,7 @@ import Smirk.Types (AccessToken, Mate, MateId)
 data RegisterData = RegisterData
   { mateId :: MateId,
     baseUrl :: Servant.BaseUrl,
-    mAccessToken :: Maybe AccessToken
+    accessToken :: Maybe AccessToken
   }
   deriving stock (Generic)
   deriving anyclass (FromJSON)

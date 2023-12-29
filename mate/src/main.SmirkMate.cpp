@@ -23,6 +23,10 @@ WiFiManagerParameter* serverAddressParam;
 
 Preferences preferences;
 
+String getMateId() {
+  return WiFi.getHostname();
+}
+
 void setupSerial() {
   Serial.begin(SERIAL_BAUD_RATE);
 }
@@ -47,7 +51,7 @@ void deregisterMaster(String serverAddress, String accessToken) {
   http.addHeader("Content-Type", "application/json");
 
   StaticJsonDocument<1024> doc;
-  doc["mateId"] = WiFi.getHostname();
+  doc["mateId"] = getMateId();
   doc["accessToken"] = accessToken;
   String requestPayload;
   serializeJson(doc, requestPayload);
@@ -68,13 +72,13 @@ void registerMaster(String serverAddress, String accessToken) {
   http.addHeader("Content-Type", "application/json");
 
   StaticJsonDocument<1024> requestDoc;
-  requestDoc["mateId"] = WiFi.getHostname();
+  requestDoc["mateId"] = getMateId();
   requestDoc["baseUrl"] = "http://" + WiFi.localIP().toString();
   if (accessToken != "") requestDoc["accessToken"] = accessToken;
   String requestPayload;
   serializeJson(requestDoc, requestPayload);
-  int httpCode = http.POST(requestPayload);
 
+  int httpCode = http.POST(requestPayload);
   if(httpCode != HTTP_CODE_OK) {
     Serial.printf("Registering failed: %s\n", http.errorToString(httpCode).c_str());
     return;
@@ -87,7 +91,7 @@ void registerMaster(String serverAddress, String accessToken) {
   JsonObject responseObj = responseDoc.as<JsonObject>();
   const char* newAccessToken = responseObj["accessToken"];
   if (newAccessToken) {
-    preferences.begin(PrefsNamespace, true);
+    preferences.begin(PrefsNamespace, false);
     preferences.putString("access_token", String(newAccessToken));
     preferences.end();
   } else {

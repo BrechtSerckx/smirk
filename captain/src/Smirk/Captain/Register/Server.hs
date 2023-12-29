@@ -28,7 +28,7 @@ server ::
 server =
   Routes
     { register =
-        \RegisterData {..} -> do
+        \RegisterData {accessToken = mAccessToken, ..} -> do
           $logInfo [qq|Registering mate: $mateId|]
           accessToken <- maybe genAccessToken pure mAccessToken
           let mate = Mate {..}
@@ -43,7 +43,8 @@ server =
             Just AlreadyRegistered ->
               throwM
                 err409
-                  { errBody = "There is already a mate registered with id ???"
+                  { errBody =
+                      [qq|There is already a mate registered with id $mateId|]
                   }
             Nothing -> pure ()
           $logInfo [qq|Registered mate: $mateId|]
