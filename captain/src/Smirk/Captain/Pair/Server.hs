@@ -1,13 +1,13 @@
-module Smirk.Captain.Register.Server (server) where
+module Smirk.Captain.Pair.Server (server) where
 
 import Servant.Server (ServerError (..), err403, err404, err409)
 import Servant.Server.Generic (AsServerT)
 import Smirk.Captain.MateStore (MonadMateStore)
 import qualified Smirk.Captain.MateStore as MateStore
-import Smirk.Captain.Register.Api
-  ( DeregisterData (..),
-    RegisterData (..),
+import Smirk.Captain.Pair.Api
+  ( PairData (..),
     Routes (..),
+    UnpairData (..),
   )
 import Smirk.Prelude
 import Smirk.Types (Mate (..), genAccessToken)
@@ -22,9 +22,9 @@ server ::
   Routes (AsServerT m)
 server =
   Routes
-    { register =
-        \RegisterData {accessToken = mAccessToken, ..} -> do
-          $logInfo [qq|Registering mate: $mateId|]
+    { pair =
+        \PairData {accessToken = mAccessToken, ..} -> do
+          $logInfo [qq|Pairing mate: $mateId|]
           accessToken <- maybe genAccessToken pure mAccessToken
           let mate = Mate {..}
           mErr <-
@@ -39,14 +39,14 @@ server =
               throwM
                 err409
                   { errBody =
-                      [qq|There is already a mate registered with id $mateId|]
+                      [qq|There is already a mate paired for id $mateId|]
                   }
             Nothing -> pure ()
           $logInfo [qq|Registered mate: $mateId|]
           return mate,
-      deregister =
-        \DeregisterData {..} -> do
-          $logInfo [qq|Deregistering mate: $mateId|]
+      unpair =
+        \UnpairData {..} -> do
+          $logInfo [qq|Unpairing mate: $mateId|]
           mErr <-
             MateStore.remove
               mateId
@@ -55,5 +55,5 @@ server =
             Just MateStore.NotFound -> throwM err404
             Just MateStore.Forbidden -> throwM err403
             Nothing -> pure ()
-          $logInfo [qq|Deregistered mate: $mateId|]
+          $logInfo [qq|Unpairing mate: $mateId|]
     }

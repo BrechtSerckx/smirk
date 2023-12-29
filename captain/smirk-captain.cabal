@@ -84,9 +84,9 @@ library
       Smirk.Captain
       Smirk.Captain.Api
       Smirk.Captain.Env
-      Smirk.Captain.Register.Api
       Smirk.Captain.MateStore
-      Smirk.Captain.Register.Server
+      Smirk.Captain.Pair.Api
+      Smirk.Captain.Pair.Server
       Smirk.Captain.Server
       Smirk.Captain.SmirkM
       Smirk.Mate.Api

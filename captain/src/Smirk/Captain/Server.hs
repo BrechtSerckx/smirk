@@ -18,7 +18,7 @@ import Servant.Server.Generic
 import Smirk.Captain.Api (Routes (..))
 import Smirk.Captain.Env (Env (..))
 import Smirk.Captain.MateStore (MonadMateStore)
-import qualified Smirk.Captain.Register.Server as Register
+import qualified Smirk.Captain.Pair.Server as Pair
 import Smirk.Captain.SmirkM
 import qualified Smirk.Mate.Client as Mate
 import Smirk.Prelude
@@ -38,7 +38,7 @@ server ::
 server =
   Routes
     { version = getVersion,
-      registerApi = toServant Register.server,
+      pairApi = toServant Pair.server,
       send = sendSignal
     }
 

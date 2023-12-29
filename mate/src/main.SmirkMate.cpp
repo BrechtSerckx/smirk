@@ -43,11 +43,11 @@ void setupHostName() {
   WiFi.setHostname(hostname.c_str());
 }
 
-void deregisterMaster(String serverAddress, String accessToken) {
-  Serial.printf("Registering to: %s\n", serverAddress.c_str());
+void unpairCaptain(String serverAddress, String accessToken) {
+  Serial.printf("Pairing to: %s\n", serverAddress.c_str());
 
   HTTPClient http;
-  http.begin(serverAddress + "/deregister");
+  http.begin(serverAddress + "/unpair");
   http.addHeader("Content-Type", "application/json");
 
   StaticJsonDocument<1024> doc;
@@ -58,17 +58,17 @@ void deregisterMaster(String serverAddress, String accessToken) {
   int httpCode = http.POST(requestPayload);
 
   if(httpCode != HTTP_CODE_OK) {
-    Serial.printf("Deregistering failed: %s\n", http.errorToString(httpCode).c_str());
+    Serial.printf("Unpairing failed: %s\n", http.errorToString(httpCode).c_str());
     return;
   }
   http.end();
 }
 
-void registerMaster(String serverAddress, String accessToken) {
-  Serial.printf("Registering to: %s\n", serverAddress.c_str());
+void pairCaptain(String serverAddress, String accessToken) {
+  Serial.printf("Pairing to: %s\n", serverAddress.c_str());
 
   HTTPClient http;
-  http.begin(serverAddress + "/register");
+  http.begin(serverAddress + "/pair");
   http.addHeader("Content-Type", "application/json");
 
   StaticJsonDocument<1024> requestDoc;
@@ -80,7 +80,7 @@ void registerMaster(String serverAddress, String accessToken) {
 
   int httpCode = http.POST(requestPayload);
   if(httpCode != HTTP_CODE_OK) {
-    Serial.printf("Registering failed: %s\n", http.errorToString(httpCode).c_str());
+    Serial.printf("Pairing failed: %s\n", http.errorToString(httpCode).c_str());
     return;
   }
 
@@ -133,8 +133,8 @@ void setupWiFi() {
       preferences.putString("server_address", serverAddressParam->getValue());
     preferences.end();
     if (oldServerAddress != newServerAddress) {
-      if (accessToken != "") deregisterMaster(oldServerAddress, accessToken);
-      if (newServerAddress != "") registerMaster(newServerAddress, accessToken);
+      if (accessToken != "") unpairCaptain(oldServerAddress, accessToken);
+      if (newServerAddress != "") pairCaptain(newServerAddress, accessToken);
     }
   });
   
@@ -214,7 +214,7 @@ void setup() {
   const String serverAddress = preferences.getString("server_address",String());
   const String accessToken = preferences.getString("access_token", String());
   preferences.end();
-  if (serverAddress != "") registerMaster(serverAddress, accessToken);
+ if (serverAddress != "") pairCaptain(serverAddress, accessToken);
   startMDNS();
   startServer();
 }
