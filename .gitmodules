@@ -1,9 +1,0 @@
-[submodule "arduino/lib/src/IRLib2"]
-	path = arduino/lib/src/IRLib2
-	url = https://github.com/cyborg5/IRLib2.git
-[submodule "arduino/lib/src/ArduinoJson"]
-	path = arduino/lib/src/ArduinoJson
-	url = https://github.com/bblanchon/ArduinoJson.git
-[submodule "arduino/lib/src/ArduinoStreamUtils"]
-	path = arduino/lib/src/ArduinoStreamUtils
-	url = https://github.com/bblanchon/ArduinoStreamUtils.git
