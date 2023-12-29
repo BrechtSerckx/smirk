@@ -17,16 +17,16 @@ void setupSerial() {
   Serial.begin(SERIAL_BAUD_RATE);
 }
 
-void setupWiFi(bool reset) {
   // WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
   // it is a good practice to make sure your code sets wifi mode how you want it.
+void setupWiFi() {
 
   // WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wm;
 
   // reset settings - wipe stored credentials for testing
   // these are stored by the esp library
-  if(reset) {
+  if(RESET_WIFI) {
     wm.resetSettings();
   }
   
@@ -52,7 +52,7 @@ void setupWiFi(bool reset) {
 
 void setup() {
   setupSerial();
-  setupWiFi(false);
+  setupWiFi();
 }
 
 void loop() {
