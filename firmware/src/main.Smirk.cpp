@@ -15,6 +15,10 @@ LogIRSender irSender = LogIRSender(&logger);
 RawIRSignal mockIRSignal = RawIRSignal({}, 1000);
 MockIRReceiver irReceiver = MockIRReceiver(&logger, mockIRSignal);
 
+// WiFiManager
+WiFiManager wm;
+WiFiManagerParameter serverAddress("server_address", "Server Address", "", 50);
+
 void setupSerial() {
   Serial.begin(SERIAL_BAUD_RATE);
 }
@@ -30,10 +34,6 @@ void setupHostName() {
   Serial.println(hostname);
   WiFi.setHostname(hostname.c_str());
 }
-
-// WiFiManager
-WiFiManager wm;
-WiFiManagerParameter serverAddress("server_address", "Server Address", "", 50);
 
 void setupWiFi() {
   // explicitly set mode, esp defaults to STA+AP
