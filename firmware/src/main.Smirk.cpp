@@ -4,6 +4,7 @@
 #define STR(A) ST(A)
 
 #include <Arduino.h>
+#include <ESPmDNS.h>
 #include <HTTPClient.h>
 #include <WiFiManager.h>
 #include "WebServer.h"
@@ -80,6 +81,13 @@ void registerMaster() {
   http.end();
 }
 
+void startMDNS() {
+  const char* hostname = "SmirkMate-" STR(NODE_ID);
+  if (MDNS.begin(hostname)) {
+    Serial.println(String("MDNS responder started on ") + hostname);
+  }
+}
+
 void handleRoot() {
   server.send(200, "text/plain", "hello from esp32!");
 }
@@ -117,6 +125,7 @@ void setup() {
   setupSerial();
   setupWiFi();
   registerMaster();
+  startMDNS();
   startServer();
 }
 
