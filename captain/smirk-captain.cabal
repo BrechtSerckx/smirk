@@ -103,6 +103,7 @@ library
       , servant
       , servant-server
       , stm
+      , text
       , wai
       , wai-extra
       , warp

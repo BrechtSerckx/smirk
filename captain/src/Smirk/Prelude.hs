@@ -24,6 +24,7 @@ import Control.Monad.Random as Export
 import Data.Aeson as Export
 import Data.Functor as Export ((<&>))
 import Data.Maybe as Export (isJust)
+import Data.Text as Export (Text)
 import GHC.Generics as Export (Generic)
 import Text.InterpolatedString.Perl6 as Export
   ( q,

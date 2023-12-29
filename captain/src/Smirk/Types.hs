@@ -7,17 +7,22 @@ module Smirk.Types
 where
 
 import qualified Data.Char as Char
+import qualified Data.Text as Text
 import Smirk.Prelude
 
-type NodeId = String
+type NodeId = Text
 
-type AccessToken = String
+type AccessToken = Text
 
 accessTokenLength :: Int
 accessTokenLength = 24
 
 genAccessToken :: MonadRandom m => m AccessToken
-genAccessToken = take accessTokenLength . filter Char.isLetter <$> getRandomRs ('A', 'z')
+genAccessToken =
+  Text.take accessTokenLength
+    . Text.filter Char.isLetter
+    . Text.pack
+    <$> getRandomRs ('A', 'z')
 
 data Node = Node {accessToken :: AccessToken}
   deriving stock (Generic)
