@@ -23,10 +23,6 @@ WiFiManagerParameter* serverAddressParam;
 
 Preferences preferences;
 
-// Register
-String accessToken = "";
-bool registered = false;
-
 void setupSerial() {
   Serial.begin(SERIAL_BAUD_RATE);
 }
@@ -43,7 +39,11 @@ void setupHostName() {
   WiFi.setHostname(hostname.c_str());
 }
 
-void deregisterMaster(String serverAddress) {
+// preferences.begin(PrefsNamespace, true);
+// String serverAddress = preferences.getString("server_address","");
+// preferences.end();
+
+void deregisterMaster(String serverAddress, String accessToken) {
   Serial.printf("Registering to: %s\n", serverAddress.c_str());
 
   HTTPClient http;
@@ -64,7 +64,7 @@ void deregisterMaster(String serverAddress) {
   http.end();
 }
 
-void registerMaster(String serverAddress) {
+void registerMaster(String serverAddress, String accessToken) {
   Serial.printf("Registering to: %s\n", serverAddress.c_str());
 
   HTTPClient http;
@@ -74,7 +74,7 @@ void registerMaster(String serverAddress) {
   StaticJsonDocument<1024> requestDoc;
   requestDoc["mateId"] = WiFi.getHostname();
   requestDoc["baseUrl"] = "http://" + WiFi.localIP().toString();
-  if (registered) requestDoc["accessToken"] = accessToken;
+  if (accessToken != "") requestDoc["accessToken"] = accessToken;
   String requestPayload;
   serializeJson(requestDoc, requestPayload);
   int httpCode = http.POST(requestPayload);
@@ -91,8 +91,9 @@ void registerMaster(String serverAddress) {
   JsonObject responseObj = responseDoc.as<JsonObject>();
   const char* newAccessToken = responseObj["accessToken"];
   if (newAccessToken) {
-    accessToken = String(newAccessToken);
-    registered = true;
+    preferences.begin(PrefsNamespace, true);
+    preferences.putString("access_token", String(newAccessToken));
+    preferences.end();
   } else {
     Serial.println("Unexpected response: " + responsePayload);
   }
@@ -119,18 +120,20 @@ void setupWiFi() {
 
   // Add server address parameter
   preferences.begin(PrefsNamespace, true);
-  serverAddressParam = new WiFiManagerParameter("server_address", "Server Address", preferences.getString("server_address","").c_str(), 50);
+  String serverAddress = preferences.getString("server_address","");
   preferences.end();
+  serverAddressParam = new WiFiManagerParameter("server_address", "Server Address", serverAddress.c_str(), 50);
   wm.addParameter(serverAddressParam);
   wm.setSaveParamsCallback([]() {
     const String newServerAddress = serverAddressParam->getValue();
     preferences.begin(PrefsNamespace, false);
     const String oldServerAddress = preferences.getString("server_address");
+    const String accessToken = preferences.getString("access_token", "");
     if (oldServerAddress != newServerAddress) preferences.putString("server_address", serverAddressParam->getValue());
     preferences.end();
     if (oldServerAddress != newServerAddress) {
-      if (registered) deregisterMaster(oldServerAddress);
-      if (newServerAddress != "") registerMaster(newServerAddress);
+      if (accessToken != "") deregisterMaster(oldServerAddress, accessToken);
+      if (newServerAddress != "") registerMaster(newServerAddress, accessToken);
     }
   });
   
@@ -168,7 +171,10 @@ void bindServerCallback() {
 
   wm.server->on("/send", HTTP_POST, []() {
     String authHeader = wm.server->header("Authorization");
-    if (registered == false || authHeader != accessToken) {
+    preferences.begin(PrefsNamespace, false);
+    const String accessToken = preferences.getString("access_token", "");
+    preferences.end();
+    if (accessToken == "" || authHeader != accessToken) {
       wm.server->send(403, "text/plain", "Invalid access token.");
     }
     if (wm.server->hasArg("plain") == false) {
@@ -204,9 +210,10 @@ void setup() {
   setupHostName();
   setupWiFi();
   preferences.begin(PrefsNamespace, false);
-  String serverAddress = preferences.getString("server_address","");
+  const String serverAddress = preferences.getString("server_address","");
+  const String accessToken = preferences.getString("access_token", "");
   preferences.end();
-  if (serverAddress != "") registerMaster(serverAddress);
+  if (serverAddress != "") registerMaster(serverAddress, accessToken);
   startMDNS();
   startServer();
 }
