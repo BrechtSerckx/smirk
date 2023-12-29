@@ -23,11 +23,26 @@ TEST(Json, DecodeRawSignal)
 {
   DynamicJsonDocument doc(1024);
   std::string input =
+    "{\"hz\":42,\"buf\":[12,13,14,15]}";
+  deserializeJson(doc, input);
+  JsonObject obj = doc.as<JsonObject>();
+  RawIRSignal* res = RawIRSignal::decodeJson(obj);
+  ASSERT_NE(res, nullptr);
+  EXPECT_EQ((*res).hz, 42);
+  EXPECT_EQ((*res).buf[0], 12);
+  EXPECT_EQ((*res).buf[1], 13);
+}
+
+TEST(Json, DecodeRawSignal2)
+{
+  DynamicJsonDocument doc(1024);
+  std::string input =
     "{\"type\":\"raw\",\"hz\":42,\"buf\":[12,13,14,15]}";
   deserializeJson(doc, input);
   JsonObject obj = doc.as<JsonObject>();
-  RawIRSignal res = RawIRSignal::decodeJson(obj);
-  EXPECT_EQ(res.hz, 42);
-  EXPECT_EQ(res.buf[0], 12);
-  EXPECT_EQ(res.buf[1], 13);
+  RawIRSignal* res = dynamic_cast<RawIRSignal*>(IRSignal::decodeJson(obj));
+  ASSERT_NE(res, nullptr);
+  EXPECT_EQ((*res).hz, 42);
+  EXPECT_EQ((*res).buf[0], 12);
+  EXPECT_EQ((*res).buf[1], 13);
 }

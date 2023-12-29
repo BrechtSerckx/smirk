@@ -16,5 +16,5 @@ class RawIRSignal : public IRSignal {
 
   void send(IRSender &sender);
 
-  static RawIRSignal decodeJson(JsonObject obj);
+  static RawIRSignal* decodeJson(JsonObject obj);
 };
