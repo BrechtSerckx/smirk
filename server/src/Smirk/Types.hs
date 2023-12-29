@@ -6,8 +6,8 @@ module Smirk.Types
   )
 where
 
-import Smirk.Prelude
 import qualified Data.Char as Char
+import Smirk.Prelude
 
 type NodeId = String
 

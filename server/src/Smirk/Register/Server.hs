@@ -1,15 +1,18 @@
 module Smirk.Register.Server (server) where
 
-import Servant.Server
+import Servant.Server (ServerError (..), err403, err404, err409)
 import Servant.Server.Generic (AsServerT)
 import Smirk.Prelude
 import Smirk.Register.Api
-  ( RegisterData (..),
+  ( DeregisterData (..),
+    RegisterData (..),
     Routes (..),
   )
 import Smirk.Register.Class
-  ( MonadRegister,
+  ( DeregisterError (..),
+    MonadRegister,
     RegisterError (..),
+    deregisterNode,
     registerNode,
   )
 import Smirk.Types (Node (..), genAccessToken)
@@ -35,5 +38,12 @@ server =
                   { errBody = "There is already a node registered with id ???"
                   }
             Nothing -> pure ()
-          return node
+          return node,
+      deregister =
+        \DeregisterData {..} -> do
+          mErr <- deregisterNode nodeId accessToken
+          case mErr of
+            Just NotFound -> throwM err404
+            Just Unauthorized -> throwM err403
+            Nothing -> pure ()
     }
