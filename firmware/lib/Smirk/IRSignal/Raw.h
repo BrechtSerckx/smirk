@@ -1,9 +1,10 @@
 #pragma once
 
- #include <stdint.h>
+#include <stdint.h>
 #include <vector>
+#include <ArduinoJson.h>
 
-#include <IRSignal.h>
+#include "IRSignal.h"
 
 class RawIRSignal : public IRSignal {
  private:

@@ -1,11 +1,11 @@
 
 #include <stdint.h>
 
-#include <Logger.h>
-#include <IRSignal/Raw.h>
-#include <IRReceiver.h>
+#include "Logger.h"
+#include "IRSignal/Raw.h"
+#include "IRReceiver.h"
 
-#include <IRReceiver/Mock.h>
+#include "IRReceiver/Mock.h"
 
 MockIRReceiver::MockIRReceiver(Logger *_logger,
                                RawIRSignal &_mockSignal)

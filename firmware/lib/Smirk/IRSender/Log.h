@@ -3,8 +3,8 @@
 #include <stdint.h>
 #include <vector>
 
-#include <Logger.h>
-#include <IRSender.h>
+#include "Logger.h"
+#include "IRSender.h"
 
 class LogIRSender : public IRSender {
 private:

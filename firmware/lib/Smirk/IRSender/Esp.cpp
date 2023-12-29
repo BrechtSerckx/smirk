@@ -3,9 +3,9 @@
 #include <stdint.h>
 #include <vector>
 
-#include <IRsend.h>
+#include "IRsend.h"
 
-#include <IRSender/Esp.h>
+#include "IRSender/Esp.h"
 
 EspIRSender::EspIRSender(IRsend *_irSend) {
   this->irSend = _irSend;

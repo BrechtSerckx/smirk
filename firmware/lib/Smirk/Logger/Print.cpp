@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include <Logger/Print.h>
+#include "Logger/Print.h"
 
 PrintLogger::PrintLogger(Print *_print)
   : print(_print) {

@@ -3,9 +3,9 @@
 #include <stdint.h>
 #include <vector>
  
-#include <IRsend.h>
+#include "IRsend.h"
 
-#include <IRSender.h>
+#include "IRSender.h"
 
 class EspIRSender : public IRSender {
 private:

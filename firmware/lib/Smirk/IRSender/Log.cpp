@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <vector>
 
-#include <IRSender/Log.h>
+#include "IRSender/Log.h"
 
 LogIRSender::LogIRSender(Logger *_logger) {
   this->logger = _logger;

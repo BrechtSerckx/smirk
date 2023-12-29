@@ -2,9 +2,9 @@
 
 #include <stdint.h>
 
-#include <Logger.h>
-#include <IRReceiver.h>
-#include <IRSignal/Raw.h>
+#include "Logger.h"
+#include "IRReceiver.h"
+#include "IRSignal/Raw.h"
 
 class MockIRReceiver : public IRReceiver {
 private:

@@ -1,7 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <IRSignal.h>
+
+#include "IRSignal.h"
 
 class IRReceiver {
 public:
