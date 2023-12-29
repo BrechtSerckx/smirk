@@ -101,6 +101,7 @@ library
       , servant-server
       , stm
       , wai
+      , wai-extra
       , warp
     hs-source-dirs:   src
 
