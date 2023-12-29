@@ -1,3 +1,5 @@
+#ifdef ARDUINO
+
 #include <stdint.h>
 #include <vector>
 
@@ -12,3 +14,5 @@ void EspIRSender::sendRaw(const std::vector<uint16_t> &buf,
                           const uint16_t hz) {
   this->irSend->sendRaw(&buf[0], buf.size(), hz);
 };
+
+#endif
