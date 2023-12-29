@@ -11,6 +11,7 @@
 #include "IRSender.h"
 #include "IRSignal.h"
 #include "IRSignal/Raw.h"
+#include "IRSendController.h"
 
 TEST(RawIRSignal, decodeJson)
 {
@@ -40,6 +41,20 @@ TEST(IRSignal, senderMechanism)
   RawIRSignal mockIRSignal = RawIRSignal(buf, hz);
   MockIRSender irSender = MockIRSender();
   mockIRSignal.send(irSender);
+  
+  std::list<std::tuple<std::vector<uint16_t>, uint16_t>> expectedSignalsSent
+    = { std::make_tuple(buf, hz)};
+  EXPECT_EQ(irSender.signalsSent, expectedSignalsSent);
+}
+TEST(IRSignal, sendController)
+{
+  std::vector<uint16_t> buf = {1, 2};
+  uint16_t hz = 1000;
+  RawIRSignal mockIRSignal = RawIRSignal(buf, hz);
+  MockIRSender irSender = MockIRSender();
+  IRSendController ctrl = IRSendController(&irSender);
+
+  ctrl.sendSignal(mockIRSignal);
   
   std::list<std::tuple<std::vector<uint16_t>, uint16_t>> expectedSignalsSent
     = { std::make_tuple(buf, hz)};
