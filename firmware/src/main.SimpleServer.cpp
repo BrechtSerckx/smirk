@@ -21,8 +21,8 @@
 
 AsyncWebServer server(80);
 
-const char* ssid = STR(SMIRK_WIFI_SSID);
-const char* password = STR(SMIRK_WIFI_PASSWORD);
+const char* ssid = STR(WIFI_SSID);
+const char* password = STR(WIFI_PASSWORD);
 
 const char* PARAM_MESSAGE = "message";
 
