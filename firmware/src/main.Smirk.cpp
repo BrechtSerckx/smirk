@@ -21,6 +21,18 @@ void setupSerial() {
   Serial.begin(SERIAL_BAUD_RATE);
 }
 
+void setupHostName() {
+  String macAddress = WiFi.macAddress();
+  Serial.print("MAC address: ");
+  Serial.println(macAddress);
+  macAddress.replace(":","");
+  macAddress = macAddress.substring(6);
+  const String hostname = "SmirkMate-" + macAddress;
+  Serial.print("Setting hostname to: ");
+  Serial.println(hostname);
+  WiFi.setHostname(hostname.c_str());
+}
+
 void setupWiFi() {
   // explicitly set mode, esp defaults to STA+AP
   WiFi.mode(WIFI_STA);
@@ -123,6 +135,7 @@ void startServer() {
 
 void setup() {
   setupSerial();
+  setupHostName();
   setupWiFi();
   registerMaster();
   startMDNS();
