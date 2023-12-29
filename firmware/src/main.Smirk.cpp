@@ -31,17 +31,15 @@ void setupWiFi() {
   }
   
   // Automatically connect using saved credentials,
-  // if connection fails, it starts an access point with the specified name ( "AutoConnectAP"),
-  // if empty will auto generate SSID, if password is blank it will be anonymous AP (wm.autoConnect())
+  // if connection fails, it starts an access point with the specified name
   // then goes into a blocking loop awaiting configuration and will return success result
 
   bool res;
-  // res = wm.autoConnect(); // auto generated AP name from chipid
-  // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
   res = wm.autoConnect(STR(AP_SSID),STR(AP_PASSWORD)); // password protected ap
 
   if(!res) {
     Serial.println("Failed to connect");
+    // FIXME: what to do here?
     // ESP.restart();
   } 
   else {
