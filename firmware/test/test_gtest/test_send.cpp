@@ -54,9 +54,9 @@ TEST(IRSendController, sendSignal)
   uint16_t hz = 1000;
   RawIRSignal mockIRSignal = RawIRSignal(buf, hz);
   MockIRSender irSender = MockIRSender();
-  IRSendController ctrl = IRSendController(&irSender);
+  IRSendController ctrl(&irSender);
 
-  ctrl.sendSignal(mockIRSignal);
+  ctrl.sendSignalLocking(mockIRSignal);
   
   std::list<std::tuple<std::vector<uint16_t>, uint16_t>> expectedSignalsSent
     = { std::make_tuple(buf, hz)};
@@ -79,18 +79,18 @@ TEST(IRSendController, sendSignalLocks)
   uint16_t hz = 1000;
   RawIRSignal mockIRSignal = RawIRSignal(buf, hz);
   LockingIRSender irSender = LockingIRSender();
-  IRSendController ctrl = IRSendController(&irSender);
+  IRSendController ctrl(&irSender);
 
   // Initially: none sending.
   EXPECT_EQ(irSender.nSending, 0);
   // Start sending 1.
-  std::thread man1([&ctrl, &mockIRSignal] {ctrl.sendSignal(mockIRSignal);});
+  std::thread man1([&ctrl, &mockIRSignal]() {ctrl.sendSignalLocking(mockIRSignal);});
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
   EXPECT_EQ(irSender.nSending, 1);
 
   // After a while, start sending 2. 1 should still be sending.
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
-  std::thread man2([&ctrl, &mockIRSignal] {ctrl.sendSignal(mockIRSignal);});
+  std::thread man2([&ctrl, &mockIRSignal]() {ctrl.sendSignalLocking(mockIRSignal);});
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
   EXPECT_EQ(irSender.nSending, 1);
   // Wait for 1 finish, 2 should still be sending.
