@@ -8,6 +8,7 @@ where
 
 import qualified Data.Char as Char
 import qualified Data.Text as Text
+import qualified Servant.Client as Servant
 import Smirk.Prelude
 
 type MateId = Text
@@ -24,6 +25,6 @@ genAccessToken =
     . Text.pack
     <$> getRandomRs ('A', 'z')
 
-data Mate = Mate {accessToken :: AccessToken}
+data Mate = Mate {accessToken :: AccessToken, baseUrl :: Servant.BaseUrl}
   deriving stock (Generic)
   deriving anyclass (ToJSON)

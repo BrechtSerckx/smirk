@@ -50,11 +50,11 @@ void deregisterMaster(String serverAddress) {
   http.begin(serverAddress + "/deregister");
   http.addHeader("Content-Type", "application/json");
 
-  const String requestPayload =
-        String("{") +
-        "\"mateId\" : \"" + WiFi.getHostname() + "\"" +
-        "\"accessToken\" : \"" + accessToken + "\"" +
-        "}";
+  StaticJsonDocument<1024> doc;
+  doc["mateId"] = WiFi.getHostname();
+  doc["accessToken"] = accessToken;
+  String requestPayload;
+  serializeJson(doc, requestPayload);
   int httpCode = http.POST(requestPayload);
 
   if(httpCode != HTTP_CODE_OK) {
@@ -71,7 +71,11 @@ void registerMaster(String serverAddress) {
   http.begin(serverAddress + "/register");
   http.addHeader("Content-Type", "application/json");
 
-  const String requestPayload = String("{ \"mateId\" : \"") + WiFi.getHostname() + "\" }";
+  StaticJsonDocument<1024> requestDoc;
+  requestDoc["mateId"] = WiFi.getHostname();
+  requestDoc["baseUrl"] = "http://" + WiFi.localIP().toString();
+  String requestPayload;
+  serializeJson(requestDoc, requestPayload);
   int httpCode = http.POST(requestPayload);
 
   if(httpCode != HTTP_CODE_OK) {
@@ -81,10 +85,10 @@ void registerMaster(String serverAddress) {
 
   String responsePayload = http.getString();
   Serial.println(responsePayload); // FIXME: remove
-  DynamicJsonDocument doc(1024);
-  deserializeJson(doc, responsePayload);
-  JsonObject obj = doc.as<JsonObject>();
-  const char* newAccessToken = obj["accessToken"];
+  DynamicJsonDocument responseDoc(1024);
+  deserializeJson(responseDoc, responsePayload);
+  JsonObject responseObj = responseDoc.as<JsonObject>();
+  const char* newAccessToken = responseObj["accessToken"];
   if (newAccessToken) {
     accessToken = String(newAccessToken);
     registered = true;

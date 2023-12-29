@@ -7,11 +7,12 @@ module Smirk.Captain.Register.Api
 where
 
 import Servant.API
+import qualified Servant.Client as Servant (BaseUrl)
 import Smirk.Prelude
 import Smirk.Types (AccessToken, Mate, MateId)
 
 data RegisterData = RegisterData
-  {mateId :: MateId}
+  {mateId :: MateId, baseUrl :: Servant.BaseUrl}
   deriving stock (Generic)
   deriving anyclass (FromJSON)
 
