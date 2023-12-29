@@ -1,9 +1,10 @@
 
 // Boilerplate for injecting strings from macros
- #define ST(A) #A
+#define ST(A) #A
 #define STR(A) ST(A)
 
 #include <Arduino.h>
+#include <HTTPClient.h>
 #include <WiFiManager.h>
 
 #include <Smirk.h>
@@ -48,9 +49,39 @@ void setupWiFi() {
   }
 }
 
+void registerMaster() {
+  HTTPClient http;
+
+  Serial.print("[HTTP] begin...\n");
+  // Split server address in two, as the preprocessor can't seem to handle `://`?
+  http.begin(STR(SERVER_PROTOCOL) "://" STR(SERVER_ADDRESS) "/register");
+
+  Serial.print("[HTTP] POST...\n");
+  // start connection and send HTTP header
+  http.addHeader("Content-Type", "application/json");
+  int httpCode = http.POST("{ \"nodeId\" : \"" STR(NODE_ID) "\" }");
+
+  // httpCode will be negative on error
+  if(httpCode > 0) {
+    // HTTP header has been send and Server response header has been handled
+    Serial.printf("[HTTP] POST... code: %d\n", httpCode);
+
+    // file found at server
+    if(httpCode == HTTP_CODE_OK) {
+      String payload = http.getString();
+      Serial.println(payload);
+    }
+  } else {
+    Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpCode).c_str());
+  }
+
+  http.end();
+}
+
 void setup() {
   setupSerial();
   setupWiFi();
+  registerMaster();
 }
 
 void loop() {
