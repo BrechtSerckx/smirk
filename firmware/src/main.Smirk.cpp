@@ -57,7 +57,7 @@ void deregisterMaster(String serverAddress) {
         "}";
   int httpCode = http.POST(requestPayload);
 
-  if(httpCode /= HTTP_CODE_OK) {
+  if(httpCode != HTTP_CODE_OK) {
     Serial.printf("Deregistering failed: %s\n", http.errorToString(httpCode).c_str());
     return;
   }
@@ -74,7 +74,7 @@ void registerMaster(String serverAddress) {
   const String requestPayload = String("{ \"nodeId\" : \"") + WiFi.getHostname() + "\" }";
   int httpCode = http.POST(requestPayload);
 
-  if(httpCode /= HTTP_CODE_OK) {
+  if(httpCode != HTTP_CODE_OK) {
     Serial.printf("Registering failed: %s\n", http.errorToString(httpCode).c_str());
     return;
   }
