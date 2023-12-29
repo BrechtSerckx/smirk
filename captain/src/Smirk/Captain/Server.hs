@@ -17,7 +17,7 @@ import Servant.Server.Generic
   )
 import Smirk.Captain.Api (Routes (..))
 import Smirk.Captain.Env (Env (..))
-import Smirk.Captain.Register.Class (MonadRegister)
+import Smirk.Captain.MateStore (MonadMateStore)
 import qualified Smirk.Captain.Register.Server as Register
 import Smirk.Captain.SmirkM
 import qualified Smirk.Mate.Client as Mate
@@ -27,7 +27,7 @@ import Smirk.Types
 server ::
   ( Monad m,
     MonadRandom m,
-    MonadRegister m,
+    MonadMateStore m,
     MonadThrow m,
     MonadLogger m,
     MonadReader Env m,

@@ -2,17 +2,12 @@ module Smirk.Captain.Register.Server (server) where
 
 import Servant.Server (ServerError (..), err403, err404, err409)
 import Servant.Server.Generic (AsServerT)
+import Smirk.Captain.MateStore (MonadMateStore)
+import qualified Smirk.Captain.MateStore as MateStore
 import Smirk.Captain.Register.Api
   ( DeregisterData (..),
     RegisterData (..),
     Routes (..),
-  )
-import Smirk.Captain.Register.Class
-  ( DeregisterError (..),
-    MonadRegister,
-    RegisterError (..),
-    deregisterMate,
-    registerMate,
   )
 import Smirk.Prelude
 import Smirk.Types (Mate (..), genAccessToken)
@@ -20,7 +15,7 @@ import Smirk.Types (Mate (..), genAccessToken)
 server ::
   forall m.
   ( MonadRandom m,
-    MonadRegister m,
+    MonadMateStore m,
     MonadThrow m,
     MonadLogger m
   ) =>
@@ -33,14 +28,14 @@ server =
           accessToken <- maybe genAccessToken pure mAccessToken
           let mate = Mate {..}
           mErr <-
-            registerMate
+            MateStore.insert
               mateId
               mate
               ( \Mate {accessToken = accessToken'} ->
                   Just accessToken' == mAccessToken
               )
           case mErr of
-            Just AlreadyRegistered ->
+            Just MateStore.AlreadyPresent ->
               throwM
                 err409
                   { errBody =
@@ -53,12 +48,12 @@ server =
         \DeregisterData {..} -> do
           $logInfo [qq|Deregistering mate: $mateId|]
           mErr <-
-            deregisterMate
+            MateStore.remove
               mateId
               (\Mate {accessToken = accessToken'} -> accessToken' == accessToken)
           case mErr of
-            Just NotFound -> throwM err404
-            Just Unauthorized -> throwM err403
+            Just MateStore.NotFound -> throwM err404
+            Just MateStore.Forbidden -> throwM err403
             Nothing -> pure ()
           $logInfo [qq|Deregistered mate: $mateId|]
     }
