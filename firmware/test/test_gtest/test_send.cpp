@@ -34,7 +34,7 @@ public:
     this->signalsSent.push_back(std::make_tuple(buf, hz));
   };
 };
-TEST(IRSignal, senderMechanism)
+TEST(IRSender, controlInversion)
 {
   std::vector<uint16_t> buf = {1, 2};
   uint16_t hz = 1000;
@@ -46,7 +46,7 @@ TEST(IRSignal, senderMechanism)
     = { std::make_tuple(buf, hz)};
   EXPECT_EQ(irSender.signalsSent, expectedSignalsSent);
 }
-TEST(IRSignal, sendController)
+TEST(IRSendController, sendSignal)
 {
   std::vector<uint16_t> buf = {1, 2};
   uint16_t hz = 1000;
